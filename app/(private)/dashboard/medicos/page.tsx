@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 "use client";
 
 import { useState } from "react";
@@ -28,7 +28,7 @@ import { MedicoDetailsModal } from "@/components/doctors-list/modals/details-med
 import { EditMedicoModal } from "@/components/doctors-list/modals/edit-medico";
 import { DeleteMedicoModal } from "@/components/doctors-list/modals/delete-medico";
 import { EditUserModal } from "@/components/user-list/modals/edit";
-import { Usuario } from "@/components/user-list";
+import { IUser } from "@/store/use-user-data-store";
 
 export default function MedicosList() {
   const queryClient = useQueryClient();
@@ -38,14 +38,6 @@ export default function MedicosList() {
   const [openDetails, setOpenDetails] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openEditUser, setOpenEditUser] = useState(false);
-
-  const { data: users } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
-    queryFn: async () => {
-      const res = await api.get("/usuarios/");
-      return res.data;
-    },
-  });
 
   const { data: medicos = [], isLoading } = useQuery<Medico[]>({
     queryKey: ["medicos"],
@@ -65,6 +57,12 @@ export default function MedicosList() {
       field: string;
       value: string;
     }) => api.patch(`/medicos/${id}/`, { [field]: value }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medicos"] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) =>
+      api.patch(`/medicos/${selected?.funcionario.id}/`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medicos"] }),
   });
 
@@ -113,32 +111,33 @@ export default function MedicosList() {
 
           <TableBody>
             {medicos.map((med) => (
-              <TableRow key={med?.usuario?.id}>
+              <TableRow key={med?.funcionario.usuario?.id}>
                 <TableCell className="flex items-center gap-3">
-                  {med?.usuario?.img ? (
+                  {med?.funcionario.usuario?.img ? (
                     <img
-                      src={med?.usuario?.img}
+                      src={med?.funcionario.usuario?.img}
                       className="h-10 w-10 rounded-full"
-                      alt={med.usuario.nome}
+                      alt={med?.funcionario?.usuario?.nome}
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gray-100" />
                   )}
                   <div>
                     <div className="font-medium">
-                      {med?.usuario?.nome} {med?.usuario?.sobrenome}
+                      {med?.funcionario?.usuario?.nome}{" "}
+                      {med?.funcionario?.usuario?.sobrenome}
                     </div>
                   </div>
                 </TableCell>
 
-                <TableCell>{med?.usuario?.email}</TableCell>
+                <TableCell>{med?.funcionario?.usuario?.email}</TableCell>
 
                 <TableCell>
                   <select
                     value={med?.especialidade}
                     onChange={(e) =>
                       updateFieldMutation.mutate({
-                        id: med?.usuario?.id,
+                        id: med.funcionario.id,
                         field: "especialidade",
                         value: e.target.value,
                       })
@@ -159,7 +158,7 @@ export default function MedicosList() {
                     value={med.num_ordem_medicos}
                     onChange={(e) =>
                       updateFieldMutation.mutate({
-                        id: med?.usuario?.id,
+                        id: med?.funcionario?.id,
                         field: "num_ordem_medicos",
                         value: e.target.value,
                       })
@@ -236,18 +235,11 @@ export default function MedicosList() {
         medico={selected}
         open={openEdit}
         setOpen={setOpenEdit}
+        onSave={(data) => updateMutation.mutate(data)}
       />
 
       <EditUserModal
-        user={
-          users?.find((currentUser) => {
-            if (!selected?.usuario) return false;
-            const userId = parseInt(
-              selected?.usuario?.split("/").filter(Boolean).pop()!
-            );
-            return currentUser.id === userId;
-          }) as Usuario
-        }
+        user={selected?.funcionario?.usuario as unknown as IUser}
         open={openEditUser}
         setOpen={setOpenEditUser}
       />
@@ -256,7 +248,7 @@ export default function MedicosList() {
         open={openDelete}
         medico={selected}
         onConfirm={() => {
-          if (selected) deleteMutation.mutate(selected.id);
+          if (selected) deleteMutation.mutate(selected?.funcionario?.id);
           setOpenDelete(false);
         }}
         onClose={() => setOpenDelete(false)}

@@ -1,7 +1,7 @@
-import { IUser } from "@/store/use-user-data-store";
+import { Funcionario } from "../funcionarios/interface";
 
 export interface Medico {
   especialidade: string;
   num_ordem_medicos: string;
-  usuario: IUser;
+  funcionario: Funcionario;
 }

@@ -42,7 +42,8 @@ export function PacienteDetailsModal({ paciente, open, setOpen }: Props) {
             <span className="font-semibold">Altura:</span> {paciente.altura} m
           </div>
           <div>
-            <span className="font-semibold">Usuário:</span> {paciente.usuario}
+            <span className="font-semibold">Usuário:</span>{" "}
+            {paciente.usuario.nome} {paciente.usuario.sobrenome}
           </div>
         </div>
 

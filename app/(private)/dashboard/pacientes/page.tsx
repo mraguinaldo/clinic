@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 "use client";
 
 import { useState } from "react";
@@ -25,13 +24,13 @@ import Link from "next/link";
 import { ImageZoomr } from "@mraguinaldo/react-image-zoomr";
 
 import { EditUserModal } from "@/components/user-list/modals/edit";
-import { Usuario } from "@/components/user-list";
 import { Paciente } from "./interface";
 import { DeletePacienteModal } from "@/components/patients-list/modals/delete-paciente";
 import { EditPacienteModal } from "@/components/patients-list/modals/edit-paciente";
 import { PacienteDetailsModal } from "@/components/patients-list/modals/details-paciente";
 import { TipoSanguineoSelect } from "@/components/tipo-sanguineo-select";
 import { EditableInput } from "@/components/editable-input";
+import { IUser } from "@/store/use-user-data-store";
 
 export default function PacientesList() {
   const queryClient = useQueryClient();
@@ -41,14 +40,6 @@ export default function PacientesList() {
   const [openDetails, setOpenDetails] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openEditUser, setOpenEditUser] = useState(false);
-
-  const { data: users } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
-    queryFn: async () => {
-      const res = await api.get("/usuarios/");
-      return res.data;
-    },
-  });
 
   const { data: pacientes = [], isLoading } = useQuery<Paciente[]>({
     queryKey: ["pacientes"],
@@ -120,7 +111,9 @@ export default function PacientesList() {
                         enableZoom={false}
                         alt="Paciente"
                       />
-                      <div className="font-medium">{pac.usuario}</div>
+                      <div className="font-medium">
+                        {pac.usuario.nome} {pac.usuario.sobrenome}
+                      </div>
                     </div>
                   ) : (
                     <div className="font-medium">{pac.usuario}</div>
@@ -236,15 +229,7 @@ export default function PacientesList() {
       />
 
       <EditUserModal
-        user={
-          users?.find((currentUser) => {
-            if (!selected?.usuario) return false;
-            const userId = parseInt(
-              selected?.usuario?.split("/").filter(Boolean).pop()!
-            );
-            return currentUser.id === userId;
-          }) as Usuario
-        }
+        user={selected?.usuario as unknown as IUser}
         open={openEditUser}
         setOpen={setOpenEditUser}
       />

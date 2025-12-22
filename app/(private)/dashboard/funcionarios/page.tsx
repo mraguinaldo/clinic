@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 "use client";
 
 import { useState } from "react";
@@ -28,7 +27,7 @@ import { FuncionarioDetailsModal } from "@/components/employees-list/modals/deta
 import { EditFuncionarioModal } from "@/components/employees-list/modals/edit-funcionario";
 import { DeleteFuncionarioModal } from "@/components/employees-list/modals/delete-funcionario";
 import { EditUserModal } from "@/components/user-list/modals/edit";
-import { Usuario } from "@/components/user-list";
+import { IUser } from "@/store/use-user-data-store";
 
 export default function RecepcionistasList() {
   const queryClient = useQueryClient();
@@ -40,16 +39,8 @@ export default function RecepcionistasList() {
 
   const [openEditUser, setOpenEditUser] = useState(false);
 
-  const { data: users } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
-    queryFn: async () => {
-      const res = await api.get("/usuarios/");
-      return res.data;
-    },
-  });
-
   const { data: funcionarios = [], isLoading } = useQuery<Funcionario[]>({
-    queryKey: ["funcionarios", "recepcionistas"],
+    queryKey: ["funcionarios"],
     queryFn: async () => {
       const res = await api.get("/funcionarios/");
       return res.data;
@@ -68,7 +59,7 @@ export default function RecepcionistasList() {
     }) => api.patch(`/funcionarios/${id}/`, { [field]: value }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["funcionarios", "recepcionistas"],
+        queryKey: ["funcionarios"],
       });
     },
   });
@@ -77,7 +68,7 @@ export default function RecepcionistasList() {
     mutationFn: async (id: number) => api.delete(`/funcionarios/${id}/`),
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ["funcionarios", "recepcionistas"],
+        queryKey: ["funcionarios"],
       }),
   });
 
@@ -287,15 +278,7 @@ export default function RecepcionistasList() {
       />
 
       <EditUserModal
-        user={
-          users?.find((currentUser) => {
-            if (!selected?.usuario) return false;
-            const userId = parseInt(
-              selected?.usuario?.split("/").filter(Boolean).pop()!
-            );
-            return currentUser.id === userId;
-          }) as Usuario
-        }
+        user={selected?.usuario as unknown as IUser}
         open={openEditUser}
         setOpen={setOpenEditUser}
       />

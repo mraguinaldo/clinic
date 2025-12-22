@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
+import { IUser } from "@/store/use-user-data-store";
+import { Funcionario } from "../interface";
 
 interface Usuario {
   id: number;
@@ -31,18 +33,37 @@ export default function CriarFuncionarioPage() {
     anos_experiencia: "",
   });
 
-  const { data: usuarios } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
+  const { data: funcionarios = [] } = useQuery<Funcionario[]>({
+    queryKey: ["funcionarios"],
+    queryFn: async () => {
+      const res = await api.get("/funcionarios/");
+      return res.data;
+    },
+  });
+
+  const { data: usuarios = [] } = useQuery<Usuario[]>({
+    queryKey: ["usuarios", funcionarios],
+    enabled: !!funcionarios.length,
     queryFn: async () => {
       const res = await api.get("/usuarios/");
-      return res.data;
+
+      return res.data.filter((usuario: IUser) => {
+        const isTipoValido =
+          usuario.tipo === "funcionario" || usuario.tipo === "admin";
+
+        const jaEhFuncionario = funcionarios.some(
+          (func) => func.usuario.id === usuario.id
+        );
+
+        return isTipoValido && !jaEhFuncionario;
+      });
     },
   });
 
   const mutation = useMutation({
     mutationFn: async () =>
       api.post("/funcionarios/", {
-        id: Number(form.usuario_id),
+        usuario_id: Number(form.usuario_id),
         cargo: form.cargo,
         departamento: form.departamento,
         turno: form.turno,

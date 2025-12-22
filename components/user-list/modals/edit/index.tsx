@@ -82,6 +82,11 @@ export function EditUserModal({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["usuarios"] });
+      queryClient.invalidateQueries({ queryKey: ["usuario"] });
+      queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+      queryClient.invalidateQueries({ queryKey: ["medicos"] });
+      queryClient.invalidateQueries({ queryKey: ["pacientes"] });
+      queryClient.invalidateQueries({ queryKey: ["recepcionistas"] });
       setOpen(false);
     },
   });

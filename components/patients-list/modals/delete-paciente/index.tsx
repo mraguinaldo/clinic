@@ -34,7 +34,7 @@ export function DeletePacienteModal({
 
         <p className="mt-2">
           Tem certeza que deseja deletar o paciente{" "}
-          <strong>{paciente.cod_medico}</strong>?
+          <strong>{paciente.usuario.nome}</strong>?
         </p>
 
         <DialogFooter className="mt-4 flex justify-end gap-2">

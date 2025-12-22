@@ -1,6 +1,8 @@
+import { IUser } from "@/store/use-user-data-store";
+
 export interface Paciente {
   id: number;
-  usuario: string;
+  usuario: IUser;
   cod_medico: string;
   tipo_sanguineo: string;
   peso: string;

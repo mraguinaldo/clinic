@@ -1,8 +1,14 @@
 "use client";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Medico } from "@/app/(private)/dashboard/medicos/interface";
-import { Dialog } from "@/components/ui/dialog";
 
 interface Props {
   medico: Medico | null;
@@ -16,16 +22,29 @@ export function DeleteMedicoModal({ medico, open, onConfirm, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <div className="p-4 flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Confirmar deleção</h2>
-        <p>Tem certeza que deseja eliminar o médico {medico.usuario.nome}?</p>
-        <div className="flex gap-2">
-          <Button variant="destructive" onClick={onConfirm}>
-            Eliminar
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Confirmar exclusão</DialogTitle>
+        </DialogHeader>
+
+        <p className="mt-2">
+          Tem certeza que deseja deletar o médico{" "}
+          <strong>
+            {medico.funcionario.usuario.nome}{" "}
+            {medico.funcionario.usuario.sobrenome}
+          </strong>
+          ?
+        </p>
+
+        <DialogFooter className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
           </Button>
-          <Button onClick={onClose}>Cancelar</Button>
-        </div>
-      </div>
+          <Button variant="destructive" onClick={onConfirm}>
+            Deletar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

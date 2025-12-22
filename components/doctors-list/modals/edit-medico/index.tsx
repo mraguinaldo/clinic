@@ -2,6 +2,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Medico } from "@/app/(private)/dashboard/medicos/interface";
-import { Dialog } from "@/components/ui/dialog";
 
 interface Props {
   medico: Medico | null;
   open: boolean;
-  setOpen: (val: boolean) => void;
+  setOpen: (value: boolean) => void;
   onSave?: (data: Partial<Medico>) => void;
 }
 
@@ -33,47 +39,79 @@ const especialidadeOptions = [
 ];
 
 export function EditMedicoModal({ medico, open, setOpen, onSave }: Props) {
-  const [especialidade, setEspecialidade] = useState("");
-  const [numOrdem, setNumOrdem] = useState("");
+  const [especialidade, setEspecialidade] = useState<string>("");
+  const [numOrdem, setNumOrdem] = useState<string>("");
 
   useEffect(() => {
-    if (medico) {
-      setEspecialidade(medico.especialidade);
-      setNumOrdem(medico.num_ordem_medicos);
+    if (open && medico) {
+      setEspecialidade(medico.especialidade ?? "");
+      setNumOrdem(medico.num_ordem_medicos ?? "");
+    } else if (!open) {
+      // Limpa os campos quando o modal fecha (boa prática)
+      setEspecialidade("");
+      setNumOrdem("");
     }
-  }, [medico]);
+  }, [open, medico]);
+
+  if (!medico) return null;
 
   const handleSave = () => {
-    if (!medico) return;
-    onSave?.({ especialidade, num_ordem_medicos: numOrdem });
+    onSave?.({
+      especialidade: especialidade,
+      num_ordem_medicos: numOrdem,
+    });
     setOpen(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="p-4 flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Editar Médico</h2>
-        <Select onValueChange={setEspecialidade} value={especialidade}>
-          <SelectTrigger>
-            <SelectValue placeholder="Especialidade" />
-          </SelectTrigger>
-          <SelectContent>
-            {especialidadeOptions.map((op) => (
-              <SelectItem key={op} value={op}>
-                {op}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <DialogContent key={medico.funcionario.id}>
+        {" "}
+        {/* já tens isso, ótimo */}
+        <DialogHeader>
+          <DialogTitle>Editar Médico</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div>
+            <span className="block font-semibold mb-1">Usuário</span>
+            <span>
+              {medico.funcionario.usuario.nome}{" "}
+              {medico.funcionario.usuario.sobrenome}
+            </span>
+          </div>
 
-        <Input
-          value={numOrdem}
-          onChange={(e) => setNumOrdem(e.target.value)}
-          placeholder="Número da Ordem"
-        />
+          <div>
+            <label className="block font-semibold mb-1">Especialidade</label>
+            <Select value={especialidade} onValueChange={setEspecialidade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a especialidade" />
+              </SelectTrigger>
+              <SelectContent>
+                {especialidadeOptions.map((op) => (
+                  <SelectItem key={op} value={op}>
+                    {op}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Button onClick={handleSave}>Salvar</Button>
-      </div>
+          <div>
+            <label className="block font-semibold mb-1">Número da Ordem</label>
+            <Input
+              value={numOrdem}
+              onChange={(e) => setNumOrdem(e.target.value)}
+              placeholder="Número da Ordem dos Médicos"
+            />
+          </div>
+        </div>
+        <DialogFooter className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave}>Salvar</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

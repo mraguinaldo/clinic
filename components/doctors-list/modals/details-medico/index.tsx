@@ -1,12 +1,19 @@
 "use client";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Medico } from "@/app/(private)/dashboard/medicos/interface";
-import { Dialog } from "@/components/ui/dialog";
 
 interface Props {
   medico: Medico | null;
   open: boolean;
-  setOpen: (val: boolean) => void;
+  setOpen: (value: boolean) => void;
 }
 
 export function MedicoDetailsModal({ medico, open, setOpen }: Props) {
@@ -14,18 +21,33 @@ export function MedicoDetailsModal({ medico, open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-2">Detalhes do Médico</h2>
-        <p>
-          <strong>ID Usuário:</strong> {medico.usuario.id}
-        </p>
-        <p>
-          <strong>Especialidade:</strong> {medico.especialidade}
-        </p>
-        <p>
-          <strong>Nº Ordem Médicos:</strong> {medico.num_ordem_medicos}
-        </p>
-      </div>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Detalhes do Médico</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-2 mt-2">
+          <div>
+            <span className="font-semibold">Usuário:</span>{" "}
+            {medico.funcionario.usuario.nome}{" "}
+            {medico.funcionario.usuario.sobrenome}
+          </div>
+
+          <div>
+            <span className="font-semibold">Especialidade:</span>{" "}
+            {medico.especialidade}
+          </div>
+
+          <div>
+            <span className="font-semibold">Nº Ordem dos Médicos:</span>{" "}
+            {medico.num_ordem_medicos}
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button onClick={() => setOpen(false)}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

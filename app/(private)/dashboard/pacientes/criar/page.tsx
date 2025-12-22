@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Usuario } from "@/components/user-list";
 import { ArrowLeft } from "lucide-react";
+import { Paciente } from "../interface";
 
 const bloodTypes = ["A+", "A-", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -28,18 +29,36 @@ export default function CriarPaciente() {
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
 
+  const { data: pacientes = [] } = useQuery<Paciente[]>({
+    queryKey: ["pacientes"],
+    queryFn: async () => {
+      const res = await api.get("/pacientes/");
+      return res.data;
+    },
+  });
+
   const { data: users = [] } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
+    queryKey: ["usuarios-pacientes", pacientes],
     queryFn: async () => {
       const res = await api.get("/usuarios/");
-      return res.data;
+
+      const pacientesIds = new Set(
+        pacientes.map((paciente) => paciente.usuario.id)
+      );
+
+      return res.data.filter((usuario: Usuario) => {
+        const isPaciente = usuario.tipo === "paciente";
+        const jaEhPaciente = pacientesIds.has(usuario.id);
+
+        return isPaciente && !jaEhPaciente;
+      });
     },
   });
 
   const createPacienteMutation = useMutation({
     mutationFn: async () =>
       api.post("/pacientes/", {
-        usuario: `/usuarios/${usuario}`,
+        usuario_id: usuario,
         cod_medico: codMedico,
         tipo_sanguineo: tipoSanguineo.toLowerCase(),
         peso,

@@ -13,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Usuario } from "@/components/user-list";
 import { ArrowLeft } from "lucide-react";
+import { Medico } from "../interface";
+import { Funcionario } from "../../funcionarios/interface";
 
 export default function CriarMedico() {
   const router = useRouter();
@@ -24,20 +25,34 @@ export default function CriarMedico() {
   const [especialidade, setEspecialidade] = useState("Cardiologia");
   const [numOrdem, setNumOrdem] = useState("");
 
-  const { data: users = [] } = useQuery<Usuario[]>({
-    queryKey: ["usuarios"],
+  const { data: medicos = [] } = useQuery<Medico[]>({
+    queryKey: ["medicos"],
     queryFn: async () => {
-      const res = await api.get("/usuarios/");
+      const res = await api.get("/medicos/");
       return res.data;
     },
   });
 
-  const medicoUsers = users.filter((u) => u?.tipo === "funcionario");
+  const { data: medicoUsers = [] } = useQuery<Funcionario[]>({
+    queryKey: ["funcionarios", medicos],
+    queryFn: async () => {
+      const res = await api.get("/funcionarios/");
+      return res.data.filter((usuario: Funcionario) => {
+        const isTipoValido = usuario.cargo === "medico";
+
+        const jaEhFuncionario = medicos.some(
+          (func) => func?.funcionario?.id === usuario.id
+        );
+
+        return isTipoValido && !jaEhFuncionario;
+      });
+    },
+  });
 
   const createMedicoMutation = useMutation({
     mutationFn: async () =>
       api.post("/medicos/", {
-        usuario: `/usuarios/${usuario}`,
+        funcionario_id: usuario,
         especialidade,
         num_ordem_medicos: numOrdem,
       }),
@@ -74,7 +89,6 @@ export default function CriarMedico() {
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
-        {/* Usuário */}
         <div>
           <label className="block font-semibold mb-1">Usuário</label>
           <Select
@@ -85,16 +99,16 @@ export default function CriarMedico() {
               <SelectValue placeholder="Selecione um usuário" />
             </SelectTrigger>
             <SelectContent>
-              {medicoUsers.map((u) => (
-                <SelectItem key={u.id} value={u.id.toString()}>
-                  {u.nome} {u.sobrenome} ({u.email})
+              {medicoUsers.map((medico) => (
+                <SelectItem key={medico?.id} value={medico?.id.toString()}>
+                  {medico?.usuario?.nome} {medico?.usuario.sobrenome} (
+                  {medico?.usuario?.email})
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Especialidade */}
         <div>
           <label className="block font-semibold mb-1">Especialidade</label>
           <Select value={especialidade} onValueChange={setEspecialidade}>
@@ -111,7 +125,6 @@ export default function CriarMedico() {
           </Select>
         </div>
 
-        {/* Número da Ordem */}
         <div>
           <label className="block font-semibold mb-1">Número da Ordem</label>
           <Input

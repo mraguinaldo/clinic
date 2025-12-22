@@ -13,7 +13,7 @@ export interface IUser {
   sobrenome: string;
   telefone: string;
   email: string;
-  tipo: string;
+  tipo: "funcionario" | "admin" | "paciente";
   genero: string;
   img: string | null;
   data_nascimento: string;
