@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -16,6 +17,7 @@ import {
 import { Usuario } from "@/components/user-list";
 import { ArrowLeft } from "lucide-react";
 import { Paciente } from "../interface";
+import { toast } from "sonner";
 
 const bloodTypes = ["A+", "A-", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -67,6 +69,16 @@ export default function CriarPaciente() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pacientes"] });
       router.push("/dashboard/pacientes");
+    },
+    onError: (error: any) => {
+      if (error?.response?.data) {
+        const data = error.response.data;
+        Object.keys(data).forEach((field) => {
+          data[field].forEach((msg: string) => toast.error(`${field}: ${msg}`));
+        });
+      } else {
+        toast.error("Ocorreu um erro ao cadastrar o paciente.");
+      }
     },
   });
 

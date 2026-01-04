@@ -49,7 +49,7 @@ interface ConsultaPayload {
   diagnostico: string;
   status: "realizada" | "pendente" | "cancelada";
   data_consulta: string | null;
-  agendamento_id: number;
+  agendamento: number;
 }
 
 export default function ConsultasCreate() {
@@ -59,7 +59,7 @@ export default function ConsultasCreate() {
     diagnostico: "",
     status: "pendente",
     data_consulta: null,
-    agendamento_id: 0,
+    agendamento: 0,
   });
 
   const [agendamentoSelected, setAgendamentoSelected] =
@@ -90,15 +90,15 @@ export default function ConsultasCreate() {
 
     setForm({
       ...form,
-      agendamento_id: agendamentoSelected.id,
+      agendamento: agendamentoSelected.id,
       data_consulta: agendamentoSelected.data_consulta,
     });
 
-    api.get(`/medicos/${agendamentoSelected?.doutor.id}/`).then((res) => {
+    api.get(`/medicos/${agendamentoSelected.profisional}/`).then((res) => {
       setProfissional(res.data);
     });
 
-    api.get(`/pacientes/${agendamentoSelected?.paciente?.id}/`).then((res) => {
+    api.get(`/pacientes/${agendamentoSelected.paciente}/`).then((res) => {
       setPaciente(res.data);
     });
   }, [agendamentoSelected]);
@@ -113,7 +113,6 @@ export default function ConsultasCreate() {
     createMutation.mutate(form);
   };
 
-  console.log(agendamentos);
   return (
     <div className="max-w-xl space-y-4">
       <h2 className="text-xl font-semibold">Nova Consulta</h2>
@@ -125,11 +124,26 @@ export default function ConsultasCreate() {
         onChange={(e) => setForm({ ...form, diagnostico: e.target.value })}
       />
 
+      <select
+        value={form.status}
+        className="border rounded-md px-2 py-1 w-full"
+        onChange={(e) =>
+          setForm({
+            ...form,
+            status: e.target.value as ConsultaPayload["status"],
+          })
+        }
+      >
+        <option value="realizada">Realizada</option>
+        <option value="pendente">Pendente</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+
       <Popover>
         <PopoverTrigger asChild>
           <Button className="w-full text-left">
             {agendamentoSelected
-              ? `Agendamento #${agendamentoSelected?.id} - ${agendamentoSelected?.paciente?.usuario?.nome}`
+              ? `Agendamento #${agendamentoSelected.id} - ${agendamentoSelected.motivo}`
               : "Selecionar agendamento"}
           </Button>
         </PopoverTrigger>
@@ -146,8 +160,8 @@ export default function ConsultasCreate() {
                 {agendamentos
                   .filter(
                     (a) =>
-                      a?.id?.toString()?.includes(agendamentoSearch) ||
-                      a?.paciente?.usuario?.email
+                      a.id.toString().includes(agendamentoSearch) ||
+                      a.motivo
                         .toLowerCase()
                         .includes(agendamentoSearch.toLowerCase())
                   )
@@ -159,7 +173,7 @@ export default function ConsultasCreate() {
                         setAgendamentoSearch("");
                       }}
                     >
-                      #{ag.id} - {ag.paciente?.usuario?.email}
+                      #{ag.id} - {ag.motivo}
                     </CommandItem>
                   ))}
               </CommandGroup>

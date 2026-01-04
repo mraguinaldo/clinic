@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -29,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 /* =======================
    TIPAGENS
@@ -70,6 +70,7 @@ interface Agendamento {
 ======================= */
 
 export default function AgendamentosList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<Agendamento | null>(null);
@@ -117,22 +118,27 @@ export default function AgendamentosList() {
   const tipoOptions = ["ONLINE", "PRESENCIAL"];
   const statusOptions = ["AGENDADA", "CANCELADA", "CONCLUIDA"];
 
-  /* =======================
-     RENDER
-  ======================= */
+  const agendamentosFiltrados = agendamentos.filter((ag) => {
+    if (user?.tipo === "paciente") {
+      return ag.paciente?.id === user?.id;
+    }
+    return true;
+  });
 
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Agendamentos</h2>
 
-        <Link
-          href="/dashboard/agendamentos/criar"
-          className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
-        >
-          <Plus size={18} />
-          Cadastrar Agendamento
-        </Link>
+        {user?.tipo !== "paciente" && (
+          <Link
+            href="/dashboard/agendamentos/criar"
+            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
+          >
+            <Plus size={18} />
+            Cadastrar Agendamento
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -152,7 +158,7 @@ export default function AgendamentosList() {
           </TableHeader>
 
           <TableBody>
-            {agendamentos.map((ag) => (
+            {agendamentosFiltrados.map((ag) => (
               <TableRow key={ag.id}>
                 <TableCell>
                   {ag.paciente.usuario.nome} {ag.paciente.usuario.sobrenome}
@@ -168,6 +174,7 @@ export default function AgendamentosList() {
                 <TableCell>
                   <input
                     type="date"
+                    disabled={user?.tipo === "paciente"}
                     defaultValue={ag.data}
                     className="border rounded-md px-2 py-1"
                     onBlur={(e) =>
@@ -183,6 +190,7 @@ export default function AgendamentosList() {
                 <TableCell>
                   <input
                     type="time"
+                    disabled={user?.tipo === "paciente"}
                     defaultValue={ag.hora_inicio.slice(0, 5)}
                     className="border rounded-md px-2 py-1"
                     onBlur={(e) =>
@@ -197,6 +205,7 @@ export default function AgendamentosList() {
                 <TableCell>
                   <input
                     type="time"
+                    disabled={user?.tipo === "paciente"}
                     defaultValue={ag.hora_fim.slice(0, 5)}
                     className="border rounded-md px-2 py-1"
                     onBlur={(e) =>
@@ -210,6 +219,7 @@ export default function AgendamentosList() {
 
                 <TableCell>
                   <select
+                    disabled={user?.tipo === "paciente"}
                     value={ag.agendamento_tipo}
                     onChange={(e) => {
                       const novoTipo = e.target
@@ -267,16 +277,18 @@ export default function AgendamentosList() {
                     <DropdownMenuContent align="end">
                       {ag.agendamento_tipo === "ONLINE" && (
                         <>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelected(ag);
-                              setMeetingLink(ag.meeting_link ?? "");
-                              setOpenMeeting(true);
-                            }}
-                          >
-                            <LinkIcon className="mr-2 h-4 w-4" />
-                            Alterar link
-                          </DropdownMenuItem>
+                          {user?.tipo !== "paciente" && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelected(ag);
+                                setMeetingLink(ag.meeting_link ?? "");
+                                setOpenMeeting(true);
+                              }}
+                            >
+                              <LinkIcon className="mr-2 h-4 w-4" />
+                              Alterar link
+                            </DropdownMenuItem>
+                          )}
 
                           {ag.meeting_link && (
                             <DropdownMenuItem
@@ -291,16 +303,18 @@ export default function AgendamentosList() {
                         </>
                       )}
 
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => {
-                          setSelected(ag);
-                          setOpenDelete(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir
-                      </DropdownMenuItem>
+                      {user?.tipo !== "paciente" && (
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => {
+                            setSelected(ag);
+                            setOpenDelete(true);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

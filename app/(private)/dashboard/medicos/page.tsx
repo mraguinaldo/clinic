@@ -61,8 +61,9 @@ export default function MedicosList() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: any) =>
-      api.patch(`/medicos/${selected?.funcionario.id}/`, data),
+    mutationFn: async (data: any) => {
+      return await api.patch(`/medicos/${selected?.id}/`, data);
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["medicos"] }),
   });
 
@@ -137,7 +138,7 @@ export default function MedicosList() {
                     value={med?.especialidade}
                     onChange={(e) =>
                       updateFieldMutation.mutate({
-                        id: med.funcionario.id,
+                        id: med?.id,
                         field: "especialidade",
                         value: e.target.value,
                       })
@@ -158,7 +159,7 @@ export default function MedicosList() {
                     value={med.num_ordem_medicos}
                     onChange={(e) =>
                       updateFieldMutation.mutate({
-                        id: med?.funcionario?.id,
+                        id: med?.id,
                         field: "num_ordem_medicos",
                         value: e.target.value,
                       })

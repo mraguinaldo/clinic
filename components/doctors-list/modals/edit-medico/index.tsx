@@ -47,7 +47,6 @@ export function EditMedicoModal({ medico, open, setOpen, onSave }: Props) {
       setEspecialidade(medico.especialidade ?? "");
       setNumOrdem(medico.num_ordem_medicos ?? "");
     } else if (!open) {
-      // Limpa os campos quando o modal fecha (boa prática)
       setEspecialidade("");
       setNumOrdem("");
     }

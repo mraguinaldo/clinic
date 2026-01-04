@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -25,69 +26,39 @@ import {
 
 import { MoreHorizontal, Eye, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
-import { ConsultaDetailsModal } from "@/components/consultation/modals/details-consulta";
-import { PaymentModal } from "@/components/payments/modals/add-payment";
+import { Agendamento, Consulta, Usuario } from "../consultas/page";
+import ExameDetailsModal from "@/components/exames/modals/details-exame";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
-export interface Usuario {
+export interface Exame {
   id: number;
-  nome: string;
-  sobrenome: string;
-  email: string;
-  telefone: string;
+  nome_exame: string;
+  descricao: string;
+  status: "realizado" | "nao realizado";
+  data_solicitacao: string;
+  data_resultado: string;
+  consulta: number;
 }
 
-export interface Medico {
-  id: number;
-  funcionario: {
-    id: number;
-    usuario: Usuario;
-    cargo: string;
-    departamento: string;
-  };
-  especialidade: string;
-}
-
-export interface Paciente {
-  id: number;
-  usuario: Usuario;
-  cod_medico: string;
-  tipo_sanguineo: string;
-  peso: string;
-  altura: string;
-}
-
-export interface Agendamento {
-  id: number;
-  profisional: number;
-  paciente: number;
-  motivo: string;
-  data_consulta: string | null;
-}
-
-export interface Consulta {
-  id: number;
-  diagnostico: string;
-  status: string;
-  data_consulta: string | null;
-  data_criacao: string;
-  agendamento: number;
-}
-
-export default function ConsultasList() {
+export default function ExamesList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
-  const [selectedConsulta, setSelectedConsulta] = useState<Consulta | null>(
-    null
-  );
+  const [selectedExame, setSelectedExame] = useState<Exame | null>(null);
   const [openDetails, setOpenDetails] = useState(false);
-  const [openPayment, setOpenPayment] = useState(false);
 
-  const [selectedDelete, setSelectedDelete] = useState<Consulta | null>(null);
+  const [selectedDelete, setSelectedDelete] = useState<Exame | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
 
   // ---------------- Queries ----------------
-  const { data: consultas = [], isLoading: loadingConsultas } = useQuery<
-    Consulta[]
-  >({
+  const { data: exames = [], isLoading: loadingExames } = useQuery<Exame[]>({
+    queryKey: ["exames"],
+    queryFn: async () => {
+      const res = await api.get("/exames/");
+      return res.data;
+    },
+  });
+
+  const { data: consultas = [] } = useQuery<Consulta[]>({
     queryKey: ["consultas"],
     queryFn: async () => {
       const res = await api.get("/consultas/");
@@ -103,7 +74,7 @@ export default function ConsultasList() {
     },
   });
 
-  const { data: medicos = [] } = useQuery<Medico[]>({
+  const { data: medicos = [] } = useQuery({
     queryKey: ["medicos"],
     queryFn: async () => {
       const res = await api.get("/medicos/");
@@ -111,7 +82,7 @@ export default function ConsultasList() {
     },
   });
 
-  const { data: pacientes = [] } = useQuery<Paciente[]>({
+  const { data: pacientes = [] } = useQuery({
     queryKey: ["pacientes"],
     queryFn: async () => {
       const res = await api.get("/pacientes/");
@@ -119,81 +90,122 @@ export default function ConsultasList() {
     },
   });
 
-  // ---------------- Mapas ----------------
+  // ---------------- Maps ----------------
+  const consultaMap: Record<number, Consulta> = {};
+  consultas.forEach((c) => (consultaMap[c.id] = c));
+
   const agendamentoMap: Record<number, Agendamento> = {};
   agendamentos.forEach((a) => (agendamentoMap[a.id] = a));
 
   const medicoMap: Record<number, Usuario> = {};
-  medicos.forEach((m) => {
+  medicos.forEach((m: any) => {
     medicoMap[m.id] = m.funcionario.usuario;
   });
 
   const pacienteMap: Record<number, Usuario> = {};
-  pacientes.forEach((p) => {
+  pacientes.forEach((p: any) => {
     pacienteMap[p.id] = p.usuario;
   });
 
   // ---------------- Mutations ----------------
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Consulta> }) =>
-      api.patch(`/consultas/${id}/`, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["consultas"] }),
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Exame> }) =>
+      api.patch(`/exames/${id}/`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["exames"] }),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => api.delete(`/consultas/${id}/`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["consultas"] }),
+    mutationFn: async (id: number) => api.delete(`/exames/${id}/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["exames"] }),
   });
 
-  if (loadingConsultas) return <p>Carregando consultas...</p>;
+  if (loadingExames) return <p>Carregando exames...</p>;
 
-  const statusOptions = ["realizada", "pendente", "cancelada"];
+  const statusOptions = ["realizado", "nao realizado"];
+
+  const examesFiltrados = exames.filter((exame) => {
+    const consulta = consultaMap[exame.consulta];
+    if (!consulta) return false;
+
+    const agendamento = agendamentoMap[consulta.agendamento];
+
+    if (user?.tipo === "paciente") {
+      return agendamento?.paciente?.id === user.id;
+    }
+
+    return true;
+  });
 
   // ---------------- Render ----------------
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Consultas</h2>
-        <Link href="/dashboard/consultas/criar">
-          <Button className="flex gap-2">
-            <Plus size={16} />
-            Nova Consulta
-          </Button>
-        </Link>
+        <h2 className="text-xl font-semibold">Exames</h2>
+        {user?.tipo !== "paciente" && (
+          <Link href="/dashboard/exames/criar">
+            <Button className="flex gap-2">
+              <Plus size={16} />
+              Novo Exame
+            </Button>
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Diagnóstico</TableHead>
+              <TableHead>Nome do Exame</TableHead>
+              <TableHead>Descrição</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Data Consulta</TableHead>
-              <TableHead>Agendamento</TableHead>
-              <TableHead>Criada em</TableHead>
+              <TableHead>Data Resultado</TableHead>
+              <TableHead>Consulta</TableHead>
               <TableHead className="text-right">Médico / Paciente</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {consultas.map((consulta) => {
-              const agendamento = agendamentoMap[consulta?.agendamento?.id];
-              const medico =
-                medicoMap[agendamento?.doutor?.funcionario?.usuario?.id ?? 0];
-              const paciente = pacienteMap[agendamento?.paciente?.id ?? 0];
+            {examesFiltrados.map((exame) => {
+              const consulta = consultaMap[exame.consulta];
+              const agendamento = consulta
+                ? agendamentoMap[consulta.agendamento]
+                : null;
+              const medico = agendamento
+                ? medicoMap[agendamento.profisional]
+                : null;
+              const paciente = agendamento
+                ? pacienteMap[agendamento.paciente]
+                : null;
 
               return (
-                <TableRow key={consulta.id}>
+                <TableRow key={exame.id}>
                   <TableCell>
                     <input
-                      defaultValue={consulta.diagnostico}
+                      disabled={user?.tipo === "paciente"}
+                      defaultValue={exame.nome_exame}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) => {
-                        if (e.target.value !== consulta.diagnostico) {
+                        if (e.target.value !== exame.nome_exame) {
                           updateMutation.mutate({
-                            id: consulta.id,
-                            data: { diagnostico: e.target.value },
+                            id: exame.id,
+                            data: { nome_exame: e.target.value },
+                          });
+                        }
+                      }}
+                    />
+                  </TableCell>
+
+                  <TableCell>
+                    <input
+                      disabled={user?.tipo === "paciente"}
+                      defaultValue={exame.descricao}
+                      className="border rounded-md px-2 py-1 w-full"
+                      onBlur={(e) => {
+                        if (e.target.value !== exame.descricao) {
+                          updateMutation.mutate({
+                            id: exame.id,
+                            data: { descricao: e.target.value },
                           });
                         }
                       }}
@@ -202,12 +214,13 @@ export default function ConsultasList() {
 
                   <TableCell>
                     <select
-                      value={consulta.status}
+                      value={exame.status}
+                      disabled={user?.tipo === "paciente"}
                       className="border rounded-md px-2 py-1"
                       onChange={(e) =>
                         updateMutation.mutate({
-                          id: consulta.id,
-                          data: { status: e.target.value },
+                          id: exame.id,
+                          data: { status: e.target.value as any },
                         })
                       }
                     >
@@ -219,13 +232,22 @@ export default function ConsultasList() {
                     </select>
                   </TableCell>
 
-                  <TableCell>{consulta.data_consulta ?? "—"}</TableCell>
-
-                  <TableCell>#{consulta?.agendamento?.data}</TableCell>
-
                   <TableCell>
-                    {new Date(consulta.data_criacao).toLocaleDateString()}
+                    <input
+                      disabled={user?.tipo === "paciente"}
+                      type="datetime-local"
+                      value={exame.data_resultado.slice(0, 16)}
+                      className="border rounded-md px-2 py-1"
+                      onBlur={(e) =>
+                        updateMutation.mutate({
+                          id: exame.id,
+                          data: { data_resultado: e.target.value },
+                        })
+                      }
+                    />
                   </TableCell>
+
+                  <TableCell>#{exame.consulta}</TableCell>
 
                   <TableCell className="text-right">
                     {medico && paciente ? (
@@ -255,16 +277,7 @@ export default function ConsultasList() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => {
-                            setSelectedConsulta(consulta);
-                            setOpenPayment(true);
-                          }}
-                        >
-                          💳 Efetuar pagamento
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedConsulta(consulta);
+                            setSelectedExame(exame);
                             setOpenDetails(true);
                           }}
                         >
@@ -272,16 +285,18 @@ export default function ConsultasList() {
                           Ver detalhes
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedDelete(consulta);
-                            setOpenDelete(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {user?.tipo !== "paciente" && (
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelectedDelete(exame);
+                              setOpenDelete(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -292,23 +307,17 @@ export default function ConsultasList() {
         </Table>
       </ScrollArea>
 
-      <ConsultaDetailsModal
-        consulta={selectedConsulta as Consulta}
+      <ExameDetailsModal
+        exame={selectedExame as Exame}
         open={openDetails}
         setOpen={setOpenDetails}
-      />
-
-      <PaymentModal
-        open={openPayment}
-        setOpen={setOpenPayment}
-        consulta={selectedConsulta}
       />
 
       {openDelete && selectedDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white p-6 rounded-md w-[400px]">
-            <h3 className="text-lg font-semibold mb-3">Excluir consulta</h3>
-            <p>Tem certeza que deseja excluir esta consulta?</p>
+            <h3 className="text-lg font-semibold mb-3">Excluir exame</h3>
+            <p>Tem certeza que deseja excluir este exame?</p>
 
             <div className="flex justify-end gap-2 mt-5">
               <Button variant="outline" onClick={() => setOpenDelete(false)}>

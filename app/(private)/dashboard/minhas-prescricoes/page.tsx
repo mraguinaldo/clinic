@@ -29,6 +29,7 @@ import Link from "next/link";
 
 import { ConsultaDetailsModal } from "@/components/consultation/modals/details-consulta";
 import { Consulta, Agendamento, Usuario } from "../consultas/page";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export interface Prescricao {
   id: number;
@@ -42,6 +43,7 @@ export interface Prescricao {
 }
 
 export default function PrescricoesList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
   const [selectedPrescricao, setSelectedPrescricao] =
     useState<Prescricao | null>(null);
@@ -109,16 +111,30 @@ export default function PrescricoesList() {
 
   if (isLoading) return <p>Carregando prescrições...</p>;
 
+  const prescricoesFiltradas = prescricoes.filter((p) => {
+    const consulta = consultaMap[p.consulta];
+    const agendamento = consulta ? agendamentoMap[consulta.agendamento] : null;
+    if (!agendamento) return false;
+
+    if (user?.tipo === "paciente") {
+      return agendamento.paciente === user.id;
+    }
+
+    return true;
+  });
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Prescrições</h2>
-        <Link href="/dashboard/prescricoes/criar">
-          <Button className="flex gap-2">
-            <Plus size={16} />
-            Nova Prescrição
-          </Button>
-        </Link>
+        {user?.tipo !== "paciente" && (
+          <Link href="/dashboard/prescricoes/criar">
+            <Button className="flex gap-2">
+              <Plus size={16} />
+              Nova Prescrição
+            </Button>
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -137,7 +153,7 @@ export default function PrescricoesList() {
           </TableHeader>
 
           <TableBody>
-            {prescricoes.map((p) => {
+            {prescricoesFiltradas.map((p) => {
               const consulta = consultaMap[p.consulta];
               const agendamento = consulta
                 ? agendamentoMap[consulta?.agendamento?.id]
@@ -153,6 +169,7 @@ export default function PrescricoesList() {
                 <TableRow key={p.id}>
                   <TableCell>
                     <input
+                      disabled={user?.tipo === "paciente"}
                       defaultValue={p.medicamento}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -167,6 +184,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled={user?.tipo === "paciente"}
                       defaultValue={p.dosagem}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -181,6 +199,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled={user?.tipo === "paciente"}
                       defaultValue={p.frequencia}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -195,6 +214,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled={user?.tipo === "paciente"}
                       defaultValue={p.duracao}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -209,6 +229,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled={user?.tipo === "paciente"}
                       defaultValue={p.observacao}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -259,16 +280,18 @@ export default function PrescricoesList() {
                           Ver detalhes
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedDelete(p);
-                            setOpenDelete(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {user?.tipo !== "paciente" && (
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelectedDelete(p);
+                              setOpenDelete(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

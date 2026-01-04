@@ -42,7 +42,7 @@ export default function LoginForm() {
 
       router.push("/dashboard");
     } catch {
-      toast("Erro ao fazer login. Verifique suas credenciais.");
+      toast("Credenciais inválidas.");
     } finally {
       setLoading(false);
     }

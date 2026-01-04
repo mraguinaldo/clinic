@@ -88,6 +88,43 @@ export default function DashboardPage() {
     queryFn: async () => (await api.get("/prescricoes/")).data,
   });
 
+  const agendamentosFiltrados =
+    user?.tipo === "paciente"
+      ? agendamentos.filter((a: any) => a.paciente === user.id)
+      : agendamentos;
+
+  const consultasFiltradas =
+    user?.tipo === "paciente"
+      ? consultas.filter((c: any) => {
+          const agendamento = agendamentos.find(
+            (a: any) => a.id === c.agendamento
+          );
+          return agendamento?.paciente === user.id;
+        })
+      : consultas;
+
+  const examesFiltrados =
+    user?.tipo === "paciente"
+      ? exames.filter((e: any) => {
+          const consulta = consultas.find((c: any) => c.id === e.consulta);
+          const agendamento = consulta
+            ? agendamentos.find((a: any) => a.id === consulta.agendamento)
+            : null;
+          return agendamento?.paciente === user.id;
+        })
+      : exames;
+
+  const prescricoesFiltradas =
+    user?.tipo === "paciente"
+      ? prescricoes.filter((p: any) => {
+          const consulta = consultas.find((c: any) => c.id === p.consulta);
+          const agendamento = consulta
+            ? agendamentos.find((a: any) => a.id === consulta.agendamento)
+            : null;
+          return agendamento?.paciente === user.id;
+        })
+      : prescricoes;
+
   // Configuração de cards por tipo de usuário
   const cardsMap: Record<string, StatCardProps[]> = {
     admin: [
@@ -169,25 +206,25 @@ export default function DashboardPage() {
     paciente: [
       {
         title: "Meus Agendamentos",
-        count: agendamentos.length,
+        count: agendamentosFiltrados.length,
         href: "/dashboard/meus-agendamentos",
         icon: Calendar,
       },
       {
         title: "Minhas Consultas",
-        count: consultas.length,
+        count: consultasFiltradas.length,
         href: "/dashboard/minhas-consultas",
         icon: Calendar,
       },
       {
         title: "Meus Exames",
-        count: exames.length,
+        count: examesFiltrados.length,
         href: "/dashboard/meus-exames",
         icon: FileText,
       },
       {
         title: "Minhas Prescrições Médicas",
-        count: prescricoes.length,
+        count: prescricoesFiltradas.length,
         href: "/dashboard/minhas-prescricoes",
         icon: ClipboardCheck,
       },

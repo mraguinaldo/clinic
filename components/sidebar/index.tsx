@@ -15,6 +15,7 @@ import {
   DollarSign,
   Activity,
   Lock,
+  Home,
 } from "lucide-react";
 import { UpdatePasswordModal } from "../update-password";
 
@@ -35,6 +36,11 @@ export function Sidebar() {
         icon: Users,
       },
       {
+        label: "Disponibilidade Médica",
+        href: "/dashboard/disponibilidade-medico",
+        icon: Calendar,
+      },
+      {
         label: "Agendamentos",
         href: "/dashboard/agendamentos",
         icon: Calendar,
@@ -43,6 +49,7 @@ export function Sidebar() {
       { label: "Exames", href: "/dashboard/exames", icon: FileText },
       { label: "Prescrições", href: "/dashboard/prescricoes", icon: FileText },
       { label: "Pagamentos", href: "/dashboard/pagamentos", icon: DollarSign },
+      { label: "Farmácia", href: "/dashboard/farmacia", icon: Home },
       { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
     ],
     recepcionista: [
@@ -103,7 +110,7 @@ export function Sidebar() {
       <div>
         <div className="p-6 text-xl font-bold">SGH Dashboard</div>
 
-        <nav className="flex flex-col gap-2 p-4">
+        <nav className="flex flex-col gap-2 p-4 h-[500px] overflow-y-auto">
           {userMenus.map((menu: any) => {
             const Icon = menu.icon;
 

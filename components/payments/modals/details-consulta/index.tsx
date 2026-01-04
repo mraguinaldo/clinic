@@ -63,7 +63,7 @@ export function ConsultaDetailsModal({ consulta, open, setOpen }: Props) {
 
           <div>
             <strong>ID do agendamento:</strong>{" "}
-            <Badge variant="outline">{consulta?.agendamento?.id}</Badge>
+            <Badge variant="outline">{consulta.agendamento}</Badge>
           </div>
         </div>
       </DialogContent>
