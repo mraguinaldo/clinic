@@ -152,13 +152,15 @@ export default function ExamesList() {
             {exames.map((exame) => {
               const consulta = consultaMap[exame.consulta];
               const agendamento = consulta
-                ? agendamentoMap[consulta.agendamento]
+                ? agendamentoMap[consulta.agendamento?.id]
                 : null;
+
               const medico = agendamento
-                ? medicoMap[agendamento.profisional]
+                ? medicoMap[agendamento.doutor?.funcionario?.id]
                 : null;
+
               const paciente = agendamento
-                ? pacienteMap[agendamento.paciente]
+                ? pacienteMap[agendamento.paciente.id]
                 : null;
 
               return (

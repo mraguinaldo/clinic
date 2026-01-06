@@ -5,12 +5,6 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/") {
-    return token
-      ? NextResponse.redirect(new URL("/dashboard", request.url))
-      : NextResponse.redirect(new URL("/login", request.url));
-  }
-
   if (pathname.startsWith("/dashboard") && !token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

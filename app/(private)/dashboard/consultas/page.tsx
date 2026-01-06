@@ -180,9 +180,8 @@ export default function ConsultasList() {
             {consultas.map((consulta) => {
               const agendamento = agendamentoMap[consulta?.agendamento?.id];
               const medico =
-                medicoMap[agendamento?.doutor?.funcionario?.usuario?.id ?? 0];
+                medicoMap[agendamento?.doutor?.funcionario?.id ?? 0];
               const paciente = pacienteMap[agendamento?.paciente?.id ?? 0];
-
               return (
                 <TableRow key={consulta.id}>
                   <TableCell>

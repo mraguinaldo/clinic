@@ -18,6 +18,7 @@ import {
   Home,
 } from "lucide-react";
 import { UpdatePasswordModal } from "../update-password";
+import Image from "next/image";
 
 export function Sidebar() {
   const { user, logout } = useUserDataStore();
@@ -108,7 +109,15 @@ export function Sidebar() {
   return (
     <div className="w-64 h-screen bg-white border-r shadow-sm fixed z-50 flex flex-col justify-between">
       <div>
-        <div className="p-6 text-xl font-bold">SGH Dashboard</div>
+        <div>
+          <Image
+            src="/header/logo.png"
+            alt="logo"
+            width={274}
+            height={72}
+            className="object-contain"
+          />
+        </div>
 
         <nav className="flex flex-col gap-2 p-4 h-[500px] overflow-y-auto">
           {userMenus.map((menu: any) => {

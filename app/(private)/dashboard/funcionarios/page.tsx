@@ -27,9 +27,10 @@ import { FuncionarioDetailsModal } from "@/components/employees-list/modals/deta
 import { EditFuncionarioModal } from "@/components/employees-list/modals/edit-funcionario";
 import { DeleteFuncionarioModal } from "@/components/employees-list/modals/delete-funcionario";
 import { EditUserModal } from "@/components/user-list/modals/edit";
-import { IUser } from "@/store/use-user-data-store";
+import { IUser, useUserDataStore } from "@/store/use-user-data-store";
 
 export default function RecepcionistasList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<Funcionario | null>(null);
@@ -95,13 +96,15 @@ export default function RecepcionistasList() {
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Funcionários</h2>
-        <Link
-          href="/dashboard/funcionarios/criar"
-          className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4 w-fit"
-        >
-          <UserPlus size={18} />
-          Cadastrar Funcionário
-        </Link>
+        {user?.tipo === "admin" && (
+          <Link
+            href="/dashboard/funcionarios/criar"
+            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4 w-fit"
+          >
+            <UserPlus size={18} />
+            Cadastrar Funcionário
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">

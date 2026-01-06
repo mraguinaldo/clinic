@@ -43,7 +43,6 @@ export default function CriarFuncionarioPage() {
 
   const { data: usuarios = [] } = useQuery<Usuario[]>({
     queryKey: ["usuarios", funcionarios],
-    enabled: !!funcionarios.length,
     queryFn: async () => {
       const res = await api.get("/usuarios/");
 

@@ -17,12 +17,14 @@ export default function DashboardPage() {
 
       <Separator className="my-6" />
       <div className="flex flex-col justify-end w-full">
-        <Link
-          className="mb-4 btn btn-primary self-end"
-          href="/dashboard/usuarios/criar"
-        >
-          Adicionar Usuário
-        </Link>
+        <div className="w-full">
+          <Link
+            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4 w-fit"
+            href="/dashboard/usuarios/criar"
+          >
+            Adicionar Usuário
+          </Link>
+        </div>
         <UserList />
       </div>
     </div>

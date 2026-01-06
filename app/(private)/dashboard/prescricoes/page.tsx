@@ -142,9 +142,11 @@ export default function PrescricoesList() {
               const agendamento = consulta
                 ? agendamentoMap[consulta?.agendamento?.id]
                 : null;
+
               const medico = agendamento?.doutor
-                ? medicoMap[agendamento?.doutor?.funcionario?.usuario?.id]
+                ? medicoMap[agendamento?.doutor?.funcionario?.id]
                 : null;
+
               const paciente = agendamento?.paciente
                 ? pacienteMap[agendamento?.paciente?.id]
                 : null;
