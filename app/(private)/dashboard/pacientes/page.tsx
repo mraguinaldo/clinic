@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
@@ -30,16 +31,22 @@ import { EditPacienteModal } from "@/components/patients-list/modals/edit-pacien
 import { PacienteDetailsModal } from "@/components/patients-list/modals/details-paciente";
 import { TipoSanguineoSelect } from "@/components/tipo-sanguineo-select";
 import { EditableInput } from "@/components/editable-input";
-import { IUser } from "@/store/use-user-data-store";
+import { IUser, useUserDataStore } from "@/store/use-user-data-store";
+import { AddHistoricoModal } from "@/components/patients-list/modals/add-historico";
+import { useRouter } from "next/navigation";
 
 export default function PacientesList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [selected, setSelected] = useState<Paciente | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openEditUser, setOpenEditUser] = useState(false);
+  const [openAddHistorico, setOpenAddHistorico] = useState(false);
+  const [openListHistoricos, setOpenListHistoricos] = useState(false);
 
   const { data: pacientes = [], isLoading } = useQuery<Paciente[]>({
     queryKey: ["pacientes"],
@@ -69,19 +76,31 @@ export default function PacientesList() {
 
   const bloodTypes = ["A+", "A-", "B-", "AB+", "AB-", "O+", "O-"];
 
+  const { data: historicos = [] } = useQuery({
+    queryKey: ["historicos"],
+    queryFn: async () => (await api.get("/historicos-medico/")).data,
+  });
+
+  const historicoPorPaciente = new Map<number, any>();
+  historicos.forEach((h: any) => {
+    historicoPorPaciente.set(h.paciente.id, h);
+  });
+
   if (isLoading) return <p>Carregando pacientes...</p>;
 
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Pacientes</h2>
-        <Link
-          href="/dashboard/pacientes/criar"
-          className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4 w-fit"
-        >
-          <UserPlus size={18} />
-          Cadastrar Paciente
-        </Link>
+        {(user?.tipo === "admin" || user?.tipo === "recepcionista") && (
+          <Link
+            href="/dashboard/pacientes/criar"
+            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4 w-fit"
+          >
+            <UserPlus size={18} />
+            Cadastrar Paciente
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -176,37 +195,80 @@ export default function PacientesList() {
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalhes
                       </DropdownMenuItem>
+                      {!historicoPorPaciente.has(pac.id) &&
+                        user?.tipo === "medico" && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelected(pac);
+                              setOpenAddHistorico(true);
+                            }}
+                          >
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Adicionar Histórico
+                          </DropdownMenuItem>
+                        )}
 
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelected(pac);
-                          setOpenEditUser(true);
-                        }}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar perfil do usuário
-                      </DropdownMenuItem>
+                      {historicoPorPaciente.has(pac.id) && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/historico-medico?pacienteId=${pac.id}`
+                              )
+                            }
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Histórico
+                          </DropdownMenuItem>
 
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelected(pac);
-                          setOpenEdit(true);
-                        }}
-                      >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar dados do paciente
-                      </DropdownMenuItem>
+                          {user?.tipo === "medico" && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelected(pac);
+                                setOpenAddHistorico(true);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Atualizar Histórico
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
 
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => {
-                          setSelected(pac);
-                          setOpenDelete(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
-                      </DropdownMenuItem>
+                      {user?.tipo === "admin" && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelected(pac);
+                              setOpenEditUser(true);
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar perfil do usuário
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelected(pac);
+                              setOpenEdit(true);
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar dados do paciente
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelected(pac);
+                              setOpenDelete(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -232,6 +294,12 @@ export default function PacientesList() {
         user={selected?.usuario as unknown as IUser}
         open={openEditUser}
         setOpen={setOpenEditUser}
+      />
+
+      <AddHistoricoModal
+        pacienteId={selected?.id || null}
+        open={openAddHistorico}
+        setOpen={setOpenAddHistorico}
       />
 
       <DeletePacienteModal

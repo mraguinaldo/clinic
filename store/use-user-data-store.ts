@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import Cookies from "js-cookie";
+import { resolveUserRole } from "./resolve-use-value";
 
 export interface IUser {
   id: number;
@@ -13,7 +14,14 @@ export interface IUser {
   sobrenome: string;
   telefone: string;
   email: string;
-  tipo: "funcionario" | "admin" | "paciente";
+  tipo:
+    | "paciente"
+    | "admin"
+    | "financeiro"
+    | "enfermeiro"
+    | "farmaceutico"
+    | "medico"
+    | "recepcionista";
   genero: string;
   img: string | null;
   data_nascimento: string;
@@ -73,22 +81,24 @@ export const useUserDataStore = create<UserState>()(
           user,
         })),
 
-      initialize: (user, token) =>
-        set((state) => {
-          const cookieToken = Cookies.get("token");
-          const cookieUserId = Cookies.get("userId");
+      initialize: async (user, token) => {
+        const cookieToken = Cookies.get("token");
+        const cookieUserId = Cookies.get("userId");
 
-          return {
-            user: user
-              ? user
-              : state.user ??
-                (cookieUserId ? ({ id: Number(cookieUserId) } as IUser) : null),
+        let updatedUser: IUser | null = null;
 
-            token: token ? token : state.token ?? cookieToken ?? null,
+        if (user) {
+          updatedUser = await resolveUserRole(user);
+        } else if (cookieUserId) {
+          updatedUser = { id: Number(cookieUserId) } as IUser;
+        }
 
-            initialized: true,
-          };
-        }),
+        set({
+          user: updatedUser,
+          token: token ?? cookieToken ?? null,
+          initialized: true,
+        });
+      },
     }),
     {
       name: "user-data-store",

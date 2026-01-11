@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -32,12 +32,15 @@ import {
   Trash2,
   ChevronDown,
   User as UserIcon,
+  Lock,
 } from "lucide-react";
 
 import { EditUserModal } from "./modals/edit";
 import { UserDetailsModal } from "./modals/details";
 import { DeleteUserModal } from "./modals/delete";
 import { ImageZoomr } from "@mraguinaldo/react-image-zoomr";
+import { UpdatePasswordModal } from "../update-password";
+import { UpdatePasswordControlledModal } from "../update-password/update";
 
 export interface Usuario {
   id: number;
@@ -60,6 +63,7 @@ export function UserList() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
+  const [toglePassword, setToglePassword] = useState(false);
 
   const [global, setGlobal] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("");
@@ -297,6 +301,16 @@ export function UserList() {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setToglePassword(true);
+                        }}
+                      >
+                        <Lock className="mr-2 h-4 w-4" />
+                        Alterar senha
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
                         onClick={() =>
                           mutationEstado.mutate({
                             id: user.id,
@@ -351,6 +365,12 @@ export function UserList() {
         user={selectedUser}
         open={openDelete}
         setOpen={setOpenDelete}
+      />
+
+      <UpdatePasswordControlledModal
+        userId={selectedUser?.id as any}
+        onOpenChange={() => setToglePassword(false)}
+        open={toglePassword}
       />
     </>
   );

@@ -21,8 +21,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export default function DisponibilidadesPage() {
+  const { user } = useUserDataStore();
   const qc = useQueryClient();
   const [edit, setEdit] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -57,9 +59,11 @@ export default function DisponibilidadesPage() {
     <>
       <div className="flex justify-between mb-4">
         <h2 className="text-xl font-semibold">Disponibilidade Médica</h2>
-        <Button onClick={() => setEdit({})}>
-          <Plus size={16} /> Nova
-        </Button>
+        {user?.tipo === "medico" && (
+          <Button onClick={() => setEdit({})}>
+            <Plus size={16} /> Nova
+          </Button>
+        )}
       </div>
 
       <Table>
@@ -95,18 +99,20 @@ export default function DisponibilidadesPage() {
                 <TableCell>{medico?.funcionario?.cargo}</TableCell>
                 <TableCell>{medico?.funcionario?.departamento}</TableCell>
 
-                <TableCell className="flex gap-2">
-                  <Button size="sm" onClick={() => setEdit(d)}>
-                    <Pencil size={14} />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(d.id)}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </TableCell>
+                {user?.id === medico?.funcionario?.usuario?.id && (
+                  <TableCell className="flex gap-2">
+                    <Button size="sm" onClick={() => setEdit(d)}>
+                      <Pencil size={14} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(d.id)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}

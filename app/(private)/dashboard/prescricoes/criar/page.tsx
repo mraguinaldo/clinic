@@ -132,32 +132,28 @@ export default function PrescricoesCreate() {
     <div className="max-w-xl space-y-4">
       <h2 className="text-xl font-semibold">Nova Prescrição</h2>
 
-      <input
-        type="text"
+      <Textarea
         placeholder="Medicamento"
         value={form.medicamento}
         className="border rounded-md px-2 py-1 w-full"
         onChange={(e) => setForm({ ...form, medicamento: e.target.value })}
       />
 
-      <input
-        type="text"
+      <Textarea
         placeholder="Dosagem"
         value={form.dosagem}
         className="border rounded-md px-2 py-1 w-full"
         onChange={(e) => setForm({ ...form, dosagem: e.target.value })}
       />
 
-      <input
-        type="text"
+      <Textarea
         placeholder="Frequência"
         value={form.frequencia}
         className="border rounded-md px-2 py-1 w-full"
         onChange={(e) => setForm({ ...form, frequencia: e.target.value })}
       />
 
-      <input
-        type="text"
+      <Textarea
         placeholder="Duração"
         value={form.duracao}
         className="border rounded-md px-2 py-1 w-full"

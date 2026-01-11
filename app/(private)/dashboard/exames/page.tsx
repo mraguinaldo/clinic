@@ -28,6 +28,7 @@ import { MoreHorizontal, Eye, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
 import { Agendamento, Consulta, Usuario } from "../consultas/page";
 import ExameDetailsModal from "@/components/exames/modals/details-exame";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export interface Exame {
   id: number;
@@ -40,6 +41,7 @@ export interface Exame {
 }
 
 export default function ExamesList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
   const [selectedExame, setSelectedExame] = useState<Exame | null>(null);
   const [openDetails, setOpenDetails] = useState(false);
@@ -121,7 +123,29 @@ export default function ExamesList() {
 
   const statusOptions = ["realizado", "nao realizado"];
 
-  // ---------------- Render ----------------
+  let examesVisiveis = exames;
+
+  if (user?.tipo !== "admin" && user?.tipo !== "recepcionista") {
+    const medicoLogado = medicos.find(
+      (m: any) => m.funcionario.usuario.id === user?.id
+    );
+
+    if (medicoLogado) {
+      examesVisiveis = exames.filter((exame) => {
+        const consulta = consultaMap[exame.consulta];
+        const agendamento = consulta
+          ? agendamentoMap[consulta.agendamento?.id]
+          : null;
+        return (
+          agendamento?.doutor?.funcionario?.usuario?.id ===
+          medicoLogado?.funcionario.usuario?.id
+        );
+      });
+    } else {
+      examesVisiveis = [];
+    }
+  }
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -149,7 +173,7 @@ export default function ExamesList() {
           </TableHeader>
 
           <TableBody>
-            {exames.map((exame) => {
+            {examesVisiveis.map((exame) => {
               const consulta = consultaMap[exame.consulta];
               const agendamento = consulta
                 ? agendamentoMap[consulta.agendamento?.id]
@@ -167,6 +191,7 @@ export default function ExamesList() {
                 <TableRow key={exame.id}>
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={exame.nome_exame}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) => {
@@ -182,6 +207,7 @@ export default function ExamesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={exame.descricao}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) => {
@@ -197,6 +223,7 @@ export default function ExamesList() {
 
                   <TableCell>
                     <select
+                      disabled
                       value={exame.status}
                       className="border rounded-md px-2 py-1"
                       onChange={(e) =>
@@ -216,6 +243,7 @@ export default function ExamesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       type="datetime-local"
                       value={exame.data_resultado.slice(0, 16)}
                       className="border rounded-md px-2 py-1"
@@ -265,7 +293,7 @@ export default function ExamesList() {
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-
+                        {/* 
                         <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => {
@@ -275,7 +303,7 @@ export default function ExamesList() {
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Excluir
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

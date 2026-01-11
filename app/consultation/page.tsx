@@ -3,6 +3,7 @@
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Phone, Clock, MapPin, Mail, Calendar } from "lucide-react";
+import Link from "next/link";
 
 export default function Consultas() {
   return (
@@ -85,12 +86,12 @@ export default function Consultas() {
                   rows={4}
                   className="w-full bg-green-700 px-4 py-3 rounded placeholder-gray-300"
                 ></textarea>
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
+                <Link
+                  href="/login"
+                  className="w-full bg-green-600 hover:bg-green-500 py-3 px-3 rounded font-semibold transition"
                 >
                   SUBMETER
-                </button>
+                </Link>
               </form>
             </div>
 

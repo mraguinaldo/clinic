@@ -39,7 +39,7 @@ export default function ExamesCreate() {
   const [form, setForm] = useState<ExamePayload>({
     nome_exame: "",
     descricao: "",
-    status: "nao realizado",
+    status: "realizado",
     data_resultado: "",
     consulta: 0,
   });
@@ -152,6 +152,7 @@ export default function ExamesCreate() {
 
       {/* Status */}
       <select
+        disabled
         value={form.status}
         className="border rounded-md px-2 py-1 w-full"
         onChange={(e) =>
@@ -159,7 +160,6 @@ export default function ExamesCreate() {
         }
       >
         <option value="realizado">Realizado</option>
-        <option value="nao realizado">Não realizado</option>
       </select>
 
       {/* Data do resultado */}

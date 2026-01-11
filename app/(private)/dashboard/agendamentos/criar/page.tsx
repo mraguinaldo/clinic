@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -25,7 +26,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/service/data";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 /* =======================
    ZOD SCHEMA
@@ -60,6 +62,7 @@ type AgendamentoForm = z.infer<typeof agendamentoSchema>;
 ======================= */
 
 export default function CadastroAgendamentoForm() {
+  const { user } = useUserDataStore();
   const router = useRouter();
   const [selectedMedicoEmail, setSelectedMedicoEmail] = useState("");
   const [selectedPacienteEmail, setSelectedPacienteEmail] = useState("");
@@ -93,6 +96,7 @@ export default function CadastroAgendamentoForm() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<AgendamentoForm>({
     resolver: zodResolver(agendamentoSchema),
@@ -186,6 +190,13 @@ export default function CadastroAgendamentoForm() {
     });
   };
 
+  useEffect(() => {
+    if (user?.id && user?.tipo === "paciente") {
+      setValue("paciente_id", user.id, { shouldValidate: true });
+      setSelectedPacienteEmail(user.email);
+    }
+  }, [user]);
+
   if (loadingMedicos || loadingPacientes) return <p>Carregando...</p>;
 
   /* =======================
@@ -223,7 +234,6 @@ export default function CadastroAgendamentoForm() {
             />
           </div>
 
-          {/* LINK REUNIÃO */}
           {watch("agendamento_tipo") === "Online" && (
             <div>
               <Label>Link da Reunião</Label>
@@ -238,7 +248,6 @@ export default function CadastroAgendamentoForm() {
             </div>
           )}
 
-          {/* DATA */}
           <div>
             <Label>Data</Label>
             <Input
@@ -300,6 +309,7 @@ export default function CadastroAgendamentoForm() {
               control={control}
               render={({ field }) => (
                 <Select
+                  disabled={user?.tipo === "paciente"}
                   value={field.value?.toString() || ""}
                   onValueChange={(val) => {
                     field.onChange(Number(val));

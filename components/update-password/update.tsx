@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/service/data";
 import { z } from "zod";
@@ -13,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -31,14 +29,17 @@ const passwordSchema = z
 
 type PasswordForm = z.infer<typeof passwordSchema>;
 
-// ---------------- Component ----------------
-interface UpdatePasswordModalProps {
-  userId: number; // ID do usuário que terá a senha alterada
+interface UpdatePasswordControlledModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  userId: number;
 }
 
-export function UpdatePasswordModal({ userId }: UpdatePasswordModalProps) {
-  const [open, setOpen] = useState(false);
-
+export function UpdatePasswordControlledModal({
+  open,
+  onOpenChange,
+  userId,
+}: UpdatePasswordControlledModalProps) {
   const {
     register,
     handleSubmit,
@@ -56,8 +57,8 @@ export function UpdatePasswordModal({ userId }: UpdatePasswordModalProps) {
       }),
     onSuccess: () => {
       toast.success("Senha alterada com sucesso!");
-      setOpen(false);
       reset();
+      onOpenChange(false);
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.detail || "Erro ao alterar senha");
@@ -67,10 +68,7 @@ export function UpdatePasswordModal({ userId }: UpdatePasswordModalProps) {
   const onSubmit = (data: PasswordForm) => mutation.mutate(data);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Atualizar Senha</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Atualizar Senha</DialogTitle>
@@ -103,7 +101,7 @@ export function UpdatePasswordModal({ userId }: UpdatePasswordModalProps) {
               type="button"
               onClick={() => {
                 reset();
-                setOpen(false);
+                onOpenChange(false);
               }}
             >
               Cancelar

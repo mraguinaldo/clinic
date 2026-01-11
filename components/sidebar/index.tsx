@@ -13,9 +13,10 @@ import {
   Calendar,
   FileText,
   DollarSign,
-  Activity,
   Lock,
   Home,
+  Activity,
+  Book,
 } from "lucide-react";
 import { UpdatePasswordModal } from "../update-password";
 import Image from "next/image";
@@ -24,7 +25,7 @@ export function Sidebar() {
   const { user, logout } = useUserDataStore();
   const router = useRouter();
 
-  const menus: any = {
+  const menus: Record<string, any[]> = {
     admin: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { label: "Usuários", href: "/dashboard/usuarios", icon: Users },
@@ -47,27 +48,12 @@ export function Sidebar() {
         icon: Calendar,
       },
       { label: "Consultas", href: "/dashboard/consultas", icon: Calendar },
-      { label: "Exames", href: "/dashboard/exames", icon: FileText },
       { label: "Prescrições", href: "/dashboard/prescricoes", icon: FileText },
       { label: "Pagamentos", href: "/dashboard/pagamentos", icon: DollarSign },
       { label: "Farmácia", href: "/dashboard/farmacia", icon: Home },
       { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
     ],
-    recepcionista: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      {
-        label: "Marcar Consulta",
-        href: "/dashboard/marcar-consulta",
-        icon: Calendar,
-      },
-      {
-        label: "Efetuar Pagamento",
-        href: "/dashboard/pagamentos",
-        icon: DollarSign,
-      },
-      { label: "Pacientes", href: "/dashboard/pacientes", icon: UserCheck },
-      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
-    ],
+
     paciente: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       {
@@ -86,9 +72,26 @@ export function Sidebar() {
         href: "/dashboard/minhas-prescricoes",
         icon: FileText,
       },
+      {
+        label: "Meu histórico",
+        href: `/dashboard/historico-medico?pacienteId=${user?.id}`,
+        icon: Book,
+      },
       { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
     ],
-    profissional: [
+
+    administrativo: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Pacientes", href: "/dashboard/pacientes", icon: UserCheck },
+      {
+        label: "Agendamentos",
+        href: "/dashboard/agendamentos",
+        icon: Calendar,
+      },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
+
+    enfermeiro: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       {
         label: "Aprovar/Rejeitar Consultas",
@@ -97,14 +100,68 @@ export function Sidebar() {
       },
       {
         label: "Aprovar/Rejeitar Exames",
-        href: "/dashboard/exames",
         icon: FileText,
       },
       { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
     ],
+
+    farmaceutico: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Prescrições", href: "/dashboard/prescricoes", icon: FileText },
+      { label: "Farmácia", href: "/dashboard/farmacia", icon: Home },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
+
+    gestor: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Usuários", href: "/dashboard/usuarios", icon: Users },
+      { label: "Funcionários", href: "/dashboard/funcionarios", icon: Users },
+      { label: "Relatórios", href: "/dashboard/relatorios", icon: FileText },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
+
+    medico: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Consultas", href: "/dashboard/consultas", icon: Calendar },
+      { label: "Exames", href: "/dashboard/exames", icon: FileText },
+      { label: "Pacientes", href: "/dashboard/pacientes", icon: UserCheck },
+      {
+        label: "Agendamentos",
+        href: "/dashboard/agendamentos",
+        icon: Calendar,
+      },
+      { label: "Prescrições", href: "/dashboard/prescricoes", icon: FileText },
+      {
+        label: "Disponibilidade Médica",
+        href: "/dashboard/disponibilidade-medico",
+        icon: Calendar,
+      },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
+
+    recepcionista: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      {
+        label: "Marcar Consulta",
+        href: "/dashboard/marcar-consulta",
+        icon: Calendar,
+      },
+      {
+        label: "Efetuar Pagamento",
+        href: "/dashboard/pagamentos",
+        icon: DollarSign,
+      },
+      { label: "Pacientes", href: "/dashboard/pacientes", icon: UserCheck },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
+
+    tecnico: [
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { label: "Atualizar Senha", href: "#", icon: Lock, modal: true },
+    ],
   };
 
-  const userMenus = user ? menus[user?.tipo] || [] : [];
+  const userMenus = user ? menus[user.tipo] || [] : [];
 
   return (
     <div className="w-64 h-screen bg-white border-r shadow-sm fixed z-50 flex flex-col justify-between">
@@ -168,10 +225,27 @@ export function Sidebar() {
               </div>
               <div className="text-sm text-gray-500 truncate">{user.email}</div>
               <div className="text-xs text-gray-400 capitalize">
-                {user.tipo}
+                {user.tipo === "administrativo"
+                  ? "Administrativo"
+                  : user.tipo === "enfermeiro"
+                  ? "Enfermeiro"
+                  : user.tipo === "farmaceutico"
+                  ? "Farmacêutico"
+                  : user.tipo === "gestor"
+                  ? "Gestor"
+                  : user.tipo === "medico"
+                  ? "Médico"
+                  : user.tipo === "recepcionista"
+                  ? "Recepcionista"
+                  : user.tipo === "tecnico"
+                  ? "Técnico"
+                  : user.tipo === "admin"
+                  ? "Administrador"
+                  : "Paciente"}
               </div>
             </div>
           </div>
+
           <button
             onClick={() => {
               logout();

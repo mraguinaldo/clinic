@@ -22,8 +22,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export function DisponibilidadeMedicoModal({ open, data, onClose }: any) {
+  const { user } = useUserDataStore();
   const qc = useQueryClient();
 
   const { control, handleSubmit, reset, getValues } = useForm({
@@ -56,14 +58,9 @@ export function DisponibilidadeMedicoModal({ open, data, onClose }: any) {
             `${medico.funcionario.usuario.nome} ${medico.funcionario.usuario.sobrenome}`
           );
         }
-      } else {
-        setSelectedMedicoId(null);
-        setSelectedMedicoLabel("");
       }
     } else {
       reset({}); // limpar formulário ao criar novo
-      setSelectedMedicoId(null);
-      setSelectedMedicoLabel("");
     }
   }, [data, medicos, reset]);
 
@@ -77,6 +74,17 @@ export function DisponibilidadeMedicoModal({ open, data, onClose }: any) {
       onClose();
     },
   });
+
+  useEffect(() => {
+    medicos.map((m: any) => {
+      if (m.funcionario.usuario.id === user?.id) {
+        setSelectedMedicoId(m.id);
+        setSelectedMedicoLabel(
+          `${m.funcionario.usuario.nome} ${m.funcionario.usuario.sobrenome}`
+        );
+      }
+    });
+  }, [medicos]);
 
   if (loadingMedicos) return <p>Carregando médicos...</p>;
 
@@ -140,33 +148,7 @@ export function DisponibilidadeMedicoModal({ open, data, onClose }: any) {
           {/* Médico */}
           <div>
             <Label>Médico</Label>
-            <Select
-              value={selectedMedicoId?.toString() || ""}
-              onValueChange={(val) => {
-                const medico = medicos.find((m: any) => m.id === Number(val));
-                if (medico) {
-                  setSelectedMedicoId(medico.id);
-                  setSelectedMedicoLabel(
-                    `${medico.funcionario.usuario.nome} ${medico.funcionario.usuario.sobrenome}`
-                  );
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue>
-                  {selectedMedicoLabel ?? "Selecione um médico"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {medicos.map((m: any) => (
-                  <SelectItem key={m.id} value={m.id.toString()}>
-                    {m.funcionario.usuario.nome}{" "}
-                    {m.funcionario.usuario.sobrenome} —{" "}
-                    {m.funcionario.usuario.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <p>{selectedMedicoLabel}</p>
           </div>
 
           <Button type="submit" className="w-full">

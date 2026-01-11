@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 /* =======================
    TIPAGENS
@@ -70,6 +71,7 @@ interface Agendamento {
 ======================= */
 
 export default function AgendamentosList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
 
   const [selected, setSelected] = useState<Agendamento | null>(null);
@@ -121,18 +123,34 @@ export default function AgendamentosList() {
      RENDER
   ======================= */
 
+  let agendamentosVisiveis = agendamentos;
+
+  if (user?.tipo === "medico") {
+    agendamentosVisiveis = agendamentos.filter(
+      (ag) => ag.doutor.funcionario.usuario.id === user.id
+    );
+  } else if (user?.tipo === "paciente") {
+    agendamentosVisiveis = agendamentos.filter(
+      (ag) => ag.paciente.usuario.id === user.id
+    );
+  }
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Agendamentos</h2>
 
-        <Link
-          href="/dashboard/agendamentos/criar"
-          className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
-        >
-          <Plus size={18} />
-          Cadastrar Agendamento
-        </Link>
+        {(user?.tipo === "admin" ||
+          user?.tipo === "recepcionista" ||
+          user?.tipo === "paciente") && (
+          <Link
+            href="/dashboard/agendamentos/criar"
+            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
+          >
+            <Plus size={18} />
+            Cadastrar Agendamento
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -152,7 +170,7 @@ export default function AgendamentosList() {
           </TableHeader>
 
           <TableBody>
-            {agendamentos.map((ag) => (
+            {agendamentosVisiveis.map((ag) => (
               <TableRow key={ag.id}>
                 <TableCell>
                   {ag.paciente.usuario.nome} {ag.paciente.usuario.sobrenome}
@@ -167,6 +185,9 @@ export default function AgendamentosList() {
 
                 <TableCell>
                   <input
+                    disabled={
+                      user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                    }
                     type="date"
                     defaultValue={ag.data}
                     className="border rounded-md px-2 py-1"
@@ -182,6 +203,9 @@ export default function AgendamentosList() {
 
                 <TableCell>
                   <input
+                    disabled={
+                      user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                    }
                     type="time"
                     defaultValue={ag.hora_inicio.slice(0, 5)}
                     className="border rounded-md px-2 py-1"
@@ -197,6 +221,9 @@ export default function AgendamentosList() {
                 <TableCell>
                   <input
                     type="time"
+                    disabled={
+                      user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                    }
                     defaultValue={ag.hora_fim.slice(0, 5)}
                     className="border rounded-md px-2 py-1"
                     onBlur={(e) =>
@@ -210,6 +237,9 @@ export default function AgendamentosList() {
 
                 <TableCell>
                   <select
+                    disabled={
+                      user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                    }
                     value={ag.agendamento_tipo}
                     onChange={(e) => {
                       const novoTipo = e.target
@@ -265,33 +295,37 @@ export default function AgendamentosList() {
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end">
-                      {ag.agendamento_tipo === "ONLINE" && (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelected(ag);
-                              setMeetingLink(ag.meeting_link ?? "");
-                              setOpenMeeting(true);
-                            }}
-                          >
-                            <LinkIcon className="mr-2 h-4 w-4" />
-                            Alterar link
-                          </DropdownMenuItem>
+                      {ag.agendamento_tipo === "ONLINE" &&
+                        (user?.tipo === "medico" ||
+                          user?.tipo === "paciente") && (
+                          <>
+                            {user?.tipo === "medico" && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelected(ag);
+                                  setMeetingLink(ag.meeting_link ?? "");
+                                  setOpenMeeting(true);
+                                }}
+                              >
+                                <LinkIcon className="mr-2 h-4 w-4" />
+                                Alterar link
+                              </DropdownMenuItem>
+                            )}
 
-                          {ag.meeting_link && (
-                            <DropdownMenuItem
-                              onClick={() =>
-                                window.open(ag.meeting_link!, "_blank")
-                              }
-                            >
-                              <Video className="mr-2 h-4 w-4" />
-                              Ir para reunião
-                            </DropdownMenuItem>
-                          )}
-                        </>
-                      )}
+                            {ag.meeting_link && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  window.open(ag.meeting_link!, "_blank")
+                                }
+                              >
+                                <Video className="mr-2 h-4 w-4" />
+                                Ir para reunião
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        )}
 
-                      <DropdownMenuItem
+                      {/* <DropdownMenuItem
                         className="text-red-600"
                         onClick={() => {
                           setSelected(ag);
@@ -300,7 +334,7 @@ export default function AgendamentosList() {
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Excluir
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

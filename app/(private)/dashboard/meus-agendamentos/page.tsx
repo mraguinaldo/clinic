@@ -120,7 +120,7 @@ export default function AgendamentosList() {
 
   const agendamentosFiltrados = agendamentos.filter((ag) => {
     if (user?.tipo === "paciente") {
-      return ag.paciente?.id === user?.id;
+      return ag.paciente?.usuario?.id === user?.id;
     }
     return true;
   });
@@ -130,15 +130,12 @@ export default function AgendamentosList() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Agendamentos</h2>
 
-        {user?.tipo !== "paciente" && (
-          <Link
-            href="/dashboard/agendamentos/criar"
-            className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
-          >
-            <Plus size={18} />
-            Cadastrar Agendamento
-          </Link>
-        )}
+        <Link
+          href="/dashboard/agendamentos/criar"
+          className="flex items-center gap-2 text-white bg-gray-950 rounded-[12px] py-2 px-4"
+        >
+          Novo Agendamento
+        </Link>
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">

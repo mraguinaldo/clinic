@@ -41,7 +41,7 @@ function StatCard({ title, count, href, icon: Icon }: StatCardProps) {
 export default function DashboardPage() {
   const { user } = useUserDataStore();
 
-  // Queries
+  // ================= Queries =================
   const { data: usuarios = [] } = useQuery({
     queryKey: ["usuarios"],
     queryFn: async () => (await api.get("/usuarios/")).data,
@@ -88,9 +88,17 @@ export default function DashboardPage() {
     queryFn: async () => (await api.get("/prescricoes/")).data,
   });
 
+  const { data: pagamentos = [] } = useQuery({
+    queryKey: ["pagamentos"],
+    queryFn: async () => (await api.get("/pagamentos/")).data,
+  });
+
+  // ================= Filtros =================
   const agendamentosFiltrados =
     user?.tipo === "paciente"
       ? agendamentos.filter((a: any) => a.paciente === user.id)
+      : user?.tipo === "medico"
+      ? agendamentos.filter((a: any) => a.medico === user.id)
       : agendamentos;
 
   const consultasFiltradas =
@@ -100,6 +108,13 @@ export default function DashboardPage() {
             (a: any) => a.id === c.agendamento
           );
           return agendamento?.paciente === user.id;
+        })
+      : user?.tipo === "medico"
+      ? consultas.filter((c: any) => {
+          const agendamento = agendamentos.find(
+            (a: any) => a.id === c.agendamento
+          );
+          return agendamento?.medico === user.id;
         })
       : consultas;
 
@@ -112,6 +127,14 @@ export default function DashboardPage() {
             : null;
           return agendamento?.paciente === user.id;
         })
+      : user?.tipo === "medico" || user?.tipo === "enfermeiro"
+      ? exames.filter((e: any) => {
+          const consulta = consultas.find((c: any) => c.id === e.consulta);
+          const agendamento = consulta
+            ? agendamentos.find((a: any) => a.id === consulta.agendamento)
+            : null;
+          return agendamento?.medico === user.id;
+        })
       : exames;
 
   const prescricoesFiltradas =
@@ -123,9 +146,17 @@ export default function DashboardPage() {
             : null;
           return agendamento?.paciente === user.id;
         })
+      : user?.tipo === "medico"
+      ? prescricoes.filter((p: any) => {
+          const consulta = consultas.find((c: any) => c.id === p.consulta);
+          const agendamento = consulta
+            ? agendamentos.find((a: any) => a.id === consulta.agendamento)
+            : null;
+          return agendamento?.medico === user.id;
+        })
       : prescricoes;
 
-  // Configuração de cards por tipo de usuário
+  // ================= Cards Dashboard =================
   const cardsMap: Record<string, StatCardProps[]> = {
     admin: [
       {
@@ -171,36 +202,48 @@ export default function DashboardPage() {
         icon: Calendar,
       },
       {
-        title: "Exames",
-        count: exames.length,
-        href: "/dashboard/exames",
-        icon: FileText,
-      },
-      {
         title: "Prescrições",
         count: prescricoes.length,
         href: "/dashboard/prescricoes",
         icon: ClipboardCheck,
       },
+      {
+        title: "Pagamentos",
+        count: pagamentos.length,
+        href: "/dashboard/pagamentos",
+        icon: DollarSign,
+      },
     ],
-    funcionario: [
+    medico: [
+      {
+        title: "Pacientes",
+        count: pacientes.length,
+        href: "/dashboard/pacientes",
+        icon: UserCheck,
+      },
       {
         title: "Agendamentos",
-        count: agendamentos.length,
+        count: agendamentosFiltrados.length,
         href: "/dashboard/agendamentos",
         icon: Calendar,
       },
       {
         title: "Consultas",
-        count: consultas.length,
+        count: consultasFiltradas.length,
         href: "/dashboard/consultas",
         icon: Calendar,
       },
       {
         title: "Exames",
-        count: exames.length,
+        count: examesFiltrados.length,
         href: "/dashboard/exames",
         icon: FileText,
+      },
+      {
+        title: "Prescrições",
+        count: prescricoesFiltradas.length,
+        href: "/dashboard/prescricoes",
+        icon: ClipboardCheck,
       },
     ],
     paciente: [
@@ -238,7 +281,7 @@ export default function DashboardPage() {
       },
       {
         title: "Pagamentos",
-        count: 0,
+        count: pagamentos.length,
         href: "/dashboard/pagamentos",
         icon: DollarSign,
       },
@@ -249,12 +292,56 @@ export default function DashboardPage() {
         icon: UserCheck,
       },
     ],
+    administrativo: [
+      {
+        title: "Pacientes",
+        count: pacientes.length,
+        href: "/dashboard/pacientes",
+        icon: UserCheck,
+      },
+      {
+        title: "Agendamentos",
+        count: agendamentos.length,
+        href: "/dashboard/agendamentos",
+        icon: Calendar,
+      },
+    ],
+    enfermeiro: [
+      {
+        title: "Consultas",
+        count: consultasFiltradas.length,
+        href: "/dashboard/consultas",
+        icon: Calendar,
+      },
+    ],
+    farmaceutico: [
+      {
+        title: "Prescrições",
+        count: prescricoes.length,
+        href: "/dashboard/prescricoes",
+        icon: FileText,
+      },
+    ],
+    gestor: [
+      {
+        title: "Total Usuários",
+        count: usuarios.length,
+        href: "/dashboard/usuarios",
+        icon: Users,
+      },
+      {
+        title: "Total Funcionários",
+        count: funcionarios.length,
+        href: "/dashboard/funcionarios",
+        icon: Users,
+      },
+    ],
   };
 
   const userCards = user ? cardsMap[user.tipo] || [] : [];
 
   return (
-    <div className="w-full">
+    <div className="w-full p-6">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {userCards.map((card) => (

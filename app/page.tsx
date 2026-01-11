@@ -2,9 +2,9 @@
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
-  Clock,
   CreditCard,
   Heart,
   Stethoscope,
@@ -13,28 +13,42 @@ import {
   Mail,
   Clock as ClockIcon,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function App() {
   return (
     <>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-scree">
         <Header />
 
-        <section className="relative bg-gradient-to-b from-green-100 to-gray-50 py-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold text-green-900 mb-6">
+        <section className="relative h-[500px] pt-24">
+          <div className="absolute top-0 right-0 w-full -z-1 bg-gradient-to-b from-green-100 to-gray-50">
+            <Image
+              src="/home/banner-2.png"
+              alt="banner"
+              width={1000}
+              height={1000}
+              className="w-full"
+            />
+          </div>
+          <div className="container mx-auto px-4 flex">
+            <div className="max-w-4xl mx-auto text-center relative flex items-center flex-col gap-4">
+              <h1 className="text-4xl md:text-5xl font-bold text-green-900 mb-6 z-10 w-full">
                 CUIDADOS PRA VIDA
                 <br />
                 Liderando o Caminho
                 <br />
                 na Excelência Médica
               </h1>
-              <button className="bg-green-700 hover:bg-green-800 text-white px-8 py-3 rounded-md text-lg font-medium transition mb-12">
+              <Link
+                href="/login"
+                className="bg-green-700 hover:bg-green-800 text-white px-8 py-3 rounded-md text-lg font-medium transition mb-12 z-10 w-fit"
+              >
                 FAZER LOGIN
-              </button>
+              </Link>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto pt-8 z-0">
                 <div className="bg-green-800 text-white p-6 rounded-lg shadow-lg">
                   <Calendar className="w-10 h-10 mb-4 mx-auto" />
                   <h3 className="text-lg font-semibold mb-2">
@@ -59,7 +73,7 @@ export default function App() {
         </section>
 
         {/* Welcome Section */}
-        <section className="py-16 bg-white">
+        <section className="pt-32 bg-white">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold text-green-900 mb-4">
               BEM-VINDO AO VIRTUAL MED
@@ -127,10 +141,42 @@ export default function App() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64" />
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64" />
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64" />
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64" />
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64">
+                  <Image
+                    src="/home/paciente-1.png"
+                    alt="ssss"
+                    width={200}
+                    height={200}
+                    className="rounded-xl w-full"
+                  />
+                </div>
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64">
+                  <Image
+                    src="/home/paciente-1.png"
+                    alt="ssss"
+                    width={200}
+                    height={200}
+                    className="rounded-xl w-full"
+                  />
+                </div>
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64">
+                  <Image
+                    src="/home/paciente-1.png"
+                    alt="ssss"
+                    width={200}
+                    height={200}
+                    className="rounded-xl w-full"
+                  />
+                </div>
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64">
+                  <Image
+                    src="/home/paciente-1.png"
+                    alt="ssss"
+                    width={200}
+                    height={200}
+                    className="rounded-xl w-full"
+                  />
+                </div>
               </div>
             </div>
 
@@ -226,12 +272,12 @@ export default function App() {
                   rows={4}
                   className="w-full bg-green-700 px-4 py-3 rounded placeholder-gray-300"
                 ></textarea>
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 hover:bg-green-500 py-3 rounded font-semibold transition"
+                <Link
+                  href="/login"
+                  className="w-full bg-green-600 hover:bg-green-500 py-3 px-3 rounded font-semibold transition"
                 >
                   SUBMETER
-                </button>
+                </Link>
               </form>
             </div>
           </div>
@@ -247,15 +293,35 @@ export default function App() {
             </h2>
             <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
               {[
-                { name: "Antunes Vitta", specialty: "NEUROLOGISTA" },
-                { name: "Mpanda Mvuela", specialty: "UROLOGISTA" },
-                { name: "Futi Simão", specialty: "CARDIOLOGISTA" },
+                {
+                  name: "Antunes Vitta",
+                  specialty: "NEUROLOGISTA",
+                  avatar: "/home/medico-1.png",
+                },
+                {
+                  name: "Mpanda Mvuela",
+                  specialty: "UROLOGISTA",
+                  avatar: "/home/medico-2.png",
+                },
+                {
+                  name: "Futi Simão",
+                  specialty: "CARDIOLOGISTA",
+                  avatar: "/home/medico-3.png",
+                },
               ].map((doctor) => (
                 <div
                   key={doctor.name}
                   className="bg-white rounded-lg shadow-lg overflow-hidden"
                 >
-                  <div className="bg-gray-200 border-2 border-dashed rounded-t-lg w-full h-64" />
+                  <div className="bg-gray-200 border-2 border-dashed rounded-t-lg w-full h-64">
+                    <Image
+                      src={doctor.avatar}
+                      alt="ssss"
+                      width={200}
+                      height={200}
+                      className="rounded-t-lg w-full"
+                    />
+                  </div>
                   <div className="p-6 bg-green-100">
                     <h3 className="text-xl font-bold text-gray-800">
                       {doctor.name}
@@ -268,9 +334,12 @@ export default function App() {
                       <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                       <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                     </div>
-                    <button className="bg-green-800 text-white px-8 py-2 rounded hover:bg-green-900 transition">
+                    <Link
+                      href="/login"
+                      className="bg-green-800 text-white px-8 py-2 rounded hover:bg-green-900 transition"
+                    >
                       Ver Perfil
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -286,9 +355,9 @@ export default function App() {
             <p>(244) 934-524-259</p>
           </div>
           <div className="bg-green-800 p-6 rounded-lg text-center">
-            <MapPin className="w-10 h-10 mx-auto mb-3" />
-            <p className="font-semibold">LOCALIZAÇÃO</p>
-            <p>Nova Urbanização</p>
+            <MapPin className="w-10 h-10 mx-auto mb-3 text-white" />
+            <p className="font-semibold text-white">LOCALIZAÇÃO</p>
+            <p className="text-white">Nova Urbanização</p>
           </div>
           <div className="bg-white text-green-900 p-6 rounded-lg text-center">
             <Mail className="w-10 h-10 mx-auto mb-3" />
@@ -296,9 +365,9 @@ export default function App() {
             <p>medicalweb@gmail.com</p>
           </div>
           <div className="bg-green-800 p-6 rounded-lg text-center">
-            <ClockIcon className="w-10 h-10 mx-auto mb-3" />
-            <p className="font-semibold">ABERTO</p>
-            <p>24 / 24 horas</p>
+            <ClockIcon className="w-10 h-10 mx-auto mb-3 text-white" />
+            <p className="font-semibold text-white">ABERTO</p>
+            <p className="text-white">24 / 24 horas</p>
           </div>
         </div>
 

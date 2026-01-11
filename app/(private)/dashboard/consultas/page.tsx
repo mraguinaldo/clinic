@@ -27,6 +27,7 @@ import { MoreHorizontal, Eye, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
 import { ConsultaDetailsModal } from "@/components/consultation/modals/details-consulta";
 import { PaymentModal } from "@/components/payments/modals/add-payment";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export interface Usuario {
   id: number;
@@ -74,6 +75,7 @@ export interface Consulta {
 }
 
 export default function ConsultasList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
   const [selectedConsulta, setSelectedConsulta] = useState<Consulta | null>(
     null
@@ -149,17 +151,39 @@ export default function ConsultasList() {
 
   const statusOptions = ["realizada", "pendente", "cancelada"];
 
+  let consultasVisiveis = consultas;
+
+  if (user?.tipo !== "admin" && user?.tipo !== "recepcionista") {
+    const medicoLogado = medicos.find(
+      (m) => m.funcionario.usuario.id === user?.id
+    );
+
+    if (medicoLogado) {
+      consultasVisiveis = consultas.filter((c) => {
+        const agendamento = agendamentoMap[c.agendamento?.id];
+        return (
+          agendamento?.doutor?.funcionario?.usuario?.id ===
+          medicoLogado?.funcionario.usuario?.id
+        );
+      });
+    } else {
+      consultasVisiveis = [];
+    }
+  }
+
   // ---------------- Render ----------------
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Consultas</h2>
-        <Link href="/dashboard/consultas/criar">
-          <Button className="flex gap-2">
-            <Plus size={16} />
-            Nova Consulta
-          </Button>
-        </Link>
+        {(user?.tipo === "admin" || user?.tipo === "recepcionista") && (
+          <Link href="/dashboard/consultas/criar">
+            <Button className="flex gap-2">
+              <Plus size={16} />
+              Nova Consulta
+            </Button>
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -177,7 +201,7 @@ export default function ConsultasList() {
           </TableHeader>
 
           <TableBody>
-            {consultas.map((consulta) => {
+            {consultasVisiveis.map((consulta) => {
               const agendamento = agendamentoMap[consulta?.agendamento?.id];
               const medico =
                 medicoMap[agendamento?.doutor?.funcionario?.id ?? 0];
@@ -186,6 +210,9 @@ export default function ConsultasList() {
                 <TableRow key={consulta.id}>
                   <TableCell>
                     <input
+                      disabled={
+                        user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                      }
                       defaultValue={consulta.diagnostico}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) => {
@@ -201,6 +228,9 @@ export default function ConsultasList() {
 
                   <TableCell>
                     <select
+                      disabled={
+                        user?.tipo !== "admin" && user?.tipo !== "recepcionista"
+                      }
                       value={consulta.status}
                       className="border rounded-md px-2 py-1"
                       onChange={(e) =>
@@ -255,32 +285,25 @@ export default function ConsultasList() {
                         <DropdownMenuItem
                           onClick={() => {
                             setSelectedConsulta(consulta);
-                            setOpenPayment(true);
-                          }}
-                        >
-                          💳 Efetuar pagamento
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedConsulta(consulta);
                             setOpenDetails(true);
                           }}
                         >
                           <Eye className="mr-2 h-4 w-4" />
                           Ver detalhes
                         </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedDelete(consulta);
-                            setOpenDelete(true);
-                          }}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
+                        {(user?.tipo === "admin" ||
+                          user?.tipo === "recepcionista") && (
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelectedDelete(consulta);
+                              setOpenDelete(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

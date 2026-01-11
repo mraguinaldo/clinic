@@ -29,6 +29,7 @@ import Link from "next/link";
 
 import { ConsultaDetailsModal } from "@/components/consultation/modals/details-consulta";
 import { Consulta, Agendamento, Usuario } from "../consultas/page";
+import { useUserDataStore } from "@/store/use-user-data-store";
 
 export interface Prescricao {
   id: number;
@@ -42,6 +43,7 @@ export interface Prescricao {
 }
 
 export default function PrescricoesList() {
+  const { user } = useUserDataStore();
   const queryClient = useQueryClient();
   const [selectedPrescricao, setSelectedPrescricao] =
     useState<Prescricao | null>(null);
@@ -113,12 +115,14 @@ export default function PrescricoesList() {
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Prescrições</h2>
-        <Link href="/dashboard/prescricoes/criar">
-          <Button className="flex gap-2">
-            <Plus size={16} />
-            Nova Prescrição
-          </Button>
-        </Link>
+        {user?.tipo === "medico" && (
+          <Link href="/dashboard/prescricoes/criar">
+            <Button className="flex gap-2">
+              <Plus size={16} />
+              Nova Prescrição
+            </Button>
+          </Link>
+        )}
       </div>
 
       <ScrollArea className="h-[520px] border rounded-md">
@@ -155,6 +159,7 @@ export default function PrescricoesList() {
                 <TableRow key={p.id}>
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={p.medicamento}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -169,6 +174,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={p.dosagem}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -183,6 +189,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={p.frequencia}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -197,6 +204,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={p.duracao}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -211,6 +219,7 @@ export default function PrescricoesList() {
 
                   <TableCell>
                     <input
+                      disabled
                       defaultValue={p.observacao}
                       className="border rounded-md px-2 py-1 w-full"
                       onBlur={(e) =>
@@ -261,7 +270,7 @@ export default function PrescricoesList() {
                           Ver detalhes
                         </DropdownMenuItem>
 
-                        <DropdownMenuItem
+                        {/* <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => {
                             setSelectedDelete(p);
@@ -270,7 +279,7 @@ export default function PrescricoesList() {
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Excluir
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

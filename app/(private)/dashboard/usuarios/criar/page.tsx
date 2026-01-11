@@ -31,26 +31,47 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const usuarioSchema = z.object({
-  nome: z.string().min(1).max(45),
-  sobrenome: z.string().min(1).max(45),
-  telefone: z.string().min(1).max(13),
-  email: z.string().email(),
-  password: z.string().min(1).max(128),
-  tipo: z.enum(["admin", "funcionario", "paciente"]),
-  genero: z.enum(["M", "F"]),
+  nome: z
+    .string({ message: "O nome é obrigatório" })
+    .min(2, "O nome deve ter no mínimo 2 caracteres")
+    .max(45, "O nome deve ter no máximo 45 caracteres"),
+
+  sobrenome: z
+    .string({ message: "O sobrenome é obrigatório" })
+    .min(2, "O sobrenome deve ter no mínimo 2 caracteres")
+    .max(45, "O sobrenome deve ter no máximo 45 caracteres"),
+
+  telefone: z
+    .string({ message: "O telefone é obrigatório" })
+    .min(9, "O telefone deve ter 9 dígitos")
+    .max(9, "O telefone deve ter 9 dígitos"),
+
+  email: z
+    .string({ message: "O e-mail é obrigatório" })
+    .email("Formato de e-mail inválido"),
+
+  password: z
+    .string({ message: "A senha é obrigatória" })
+    .min(6, "A senha deve ter no mínimo 6 caracteres")
+    .max(128, "A senha deve ter no máximo 128 caracteres"),
+
+  genero: z.enum(["M", "F"], { required_error: "O gênero é obrigatório" }),
+
   data_nascimento: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido"),
-  is_active: z.boolean().optional(),
-  is_staff: z.boolean().optional(),
-  is_superuser: z.boolean().optional(),
+    .string({ message: "A data de nascimento é obrigatória" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato da data deve ser AAAA-MM-DD"),
+
   img: z
     .any()
     .refine(
       (files) => !files || (files instanceof FileList && files.length > 0),
-      "Selecione um arquivo"
+      "Selecione uma imagem válida"
     )
     .optional(),
+  tipo: z.enum(["admin", "funcionario", "paciente"]),
+  is_active: z.boolean().optional(),
+  is_staff: z.boolean().optional(),
+  is_superuser: z.boolean().optional(),
 });
 
 type UsuarioForm = z.infer<typeof usuarioSchema>;
@@ -111,8 +132,12 @@ export default function CadastroUsuarioForm() {
         toast("Usuário criado com sucesso!");
         router.push("/dashboard/usuarios");
       },
-      onError: () => {
-        toast("Erro ao criar usuário");
+      onError: (err: any) => {
+        const message = err.response?.data
+          ? Object.values(err.response.data).flat().join("\n")
+          : "Erro ao criar usuário";
+
+        toast.error(message);
       },
     });
   };

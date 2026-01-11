@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { api } from "@/service/data";
 import { useUserDataStore } from "@/store/use-user-data-store";
+import Link from "next/link";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function LoginForm() {
       });
 
       const { access, refresh } = response.data;
+
       login({ token: access, refreshToken: refresh, user: response.data.user });
 
       toast("Login realizado com sucesso!");
@@ -79,6 +81,11 @@ export default function LoginForm() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </Button>
+
+          <Link href="/register" className="mt-12">
+            Não tens uma conta?{" "}
+            <span className="text-blue-800 underline">Criar conta...</span>
+          </Link>
         </form>
       </CardContent>
     </Card>
